@@ -1,0 +1,33 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/atelier360_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
+app:
+  jwt:
+    secret: 9A5b822d5A0f4E71B89f81C765d14E53B2a5D8E4F973B1a6C782B4E9G5A0F81D
+    expiration: 86400000 # 24 hours
+  erp:
+    export-path: ./erp-export/ 

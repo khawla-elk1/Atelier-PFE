@@ -1,0 +1,49 @@
+﻿
+> frontend@0.0.0 build
+> ng build
+
+node.exe : - Building...
+Au caractère Ligne:1 : 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+NotSpeci    fied: (- 
+Building...:String) [], R    
+emoteException
+    + FullyQualifiedErrorId : 
+NativeCo    mmandError
+ 
+
+Initial chunk files   | Names         |  Raw size | Estimated transfer size
+main-WWZ5NBDL.js      | main          | 303.90 kB |                78.05 kB
+polyfills-FFHMD2TL.js | polyfills     |  33.71 kB |                11.02 kB
+styles-RJQVZEN4.css   | styles        |  17.20 kB |                 2.39 kB
+
+                      | Initial total | 354.81 kB |                91.46 kB
+
+Application bundle generation failed. [7.955 seconds]
+
+Ôû▓ [WARNING] angular:styles/compone
+nt:css;017f5dfa287144979120de5c68dec
+bf66cc2981d8009b957b701391dc8948f37;
+C:/Users/Khawla/Desktop/AtelierV/Ate
+lier360/frontend/src/app/engins/engi
+ns.component.ts exceeded maximum 
+budget. Budget 2.00 kB was not met 
+by 2.33 kB with a total of 4.33 kB.
+
+
+X [ERROR] angular:styles/component:c
+ss;017f5dfa287144979120de5c68decbf66
+cc2981d8009b957b701391dc8948f37;C:/U
+sers/Khawla/Desktop/AtelierV/Atelier
+360/frontend/src/app/engins/engins.c
+omponent.ts exceeded maximum 
+budget. Budget 4.00 kB was not met 
+by 343 bytes with a total of 4.33 
+kB.
+
+

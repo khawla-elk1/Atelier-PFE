@@ -1,0 +1,94 @@
+<div class="equipe-container">
+  <div class="page-header">
+    <h1 class="page-title">Gestion de l'Équipe (Techniciens)</h1>
+    <button class="btn btn-primary" (click)="showSaisieForm = !showSaisieForm">
+      {{ showSaisieForm ? 'Annuler la saisie' : 'Saisir un nouveau technicien' }}
+    </button>
+  </div>
+
+  <!-- Formulaire de saisie: Utilisé par l'Admin ou lors d'une affectation -->
+  <div class="saisie-card" *ngIf="showSaisieForm">
+    <h3>Saisie d'un profil Technicien</h3>
+    <p class="subtitle">Ce profil devra être validé par le Chef d'Atelier.</p>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" [(ngModel)]="nouveauTech.nom" class="form-control" placeholder="Ex: Dupont">
+      </div>
+      <div class="form-group">
+        <label>Prénom</label>
+        <input type="text" [(ngModel)]="nouveauTech.prenom" class="form-control" placeholder="Ex: Jean">
+      </div>
+      <div class="form-group">
+        <label>Spécialité</label>
+        <select [(ngModel)]="nouveauTech.specialite" class="form-control">
+          <option *ngFor="let spec of specialites" [value]="spec">{{ spec }}</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button class="btn btn-success" (click)="onSubmitSaisie()">Soumettre pour Accord</button>
+    </div>
+  </div>
+
+  <div class="lists-container">
+    
+    <!-- Liste en attente (Espace de validation Chef d'Atelier) -->
+    <div class="card attente-card">
+      <div class="card-header bg-warning-light">
+        <h3 class="card-title">En attente d'accord (Chef d'Atelier)</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="techniciensEnAttente.length === 0" class="empty-state">
+          Aucun technicien en attente de validation.
+        </div>
+        
+        <div class="tech-item" *ngFor="let tech of techniciensEnAttente">
+          <div class="tech-info">
+            <span class="tech-name">{{ tech.nom }} {{ tech.prenom }}</span>
+            <span class="tech-spec badge-badge-outline">{{ tech.specialite || 'Non défini' }}</span>
+          </div>
+          <div class="tech-actions">
+            <!-- Normalement, on vérifie que l'utilisateur est CHEF, mais on affiche pour la démo -->
+            <button class="btn btn-action btn-approve" (click)="valider(tech.idUser, 'APPROUVE')" title="Approuver">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+            </button>
+            <button class="btn btn-action btn-reject" (click)="valider(tech.idUser, 'REJETE')" title="Rejeter">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des techniciens actifs -->
+    <div class="card actifs-card">
+      <div class="card-header bg-success-light">
+        <h3 class="card-title">Techniciens Actifs</h3>
+      </div>
+      <div class="card-body">
+        <div *ngIf="techniciens.length === 0" class="empty-state">
+          Aucun technicien actif actuellement.
+        </div>
+
+        <div class="tech-item-grid" *ngIf="techniciens.length > 0">
+          <div class="tech-card" *ngFor="let tech of techniciens">
+            <div class="tech-avatar">{{ tech.nom.charAt(0) }}{{ tech.prenom ? tech.prenom.charAt(0) : '' }}</div>
+            <div class="tech-details">
+              <h4>{{ tech.nom }} {{ tech.prenom }}</h4>
+              <span class="badge badge-success">{{ tech.specialite || 'Technicien' }}</span>
+            </div>
+            <div class="status-indicator active"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

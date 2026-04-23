@@ -1,0 +1,47 @@
+:host {
+    display: block;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+
+.table thead th {
+    padding: 1rem;
+    background-color: #f1f3f5;
+    border-bottom: 2px solid #dee2e6;
+    color: #495057;
+    font-size: 0.75rem;
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.bg-danger-subtle { background-color: #fee2e2 !important; }
+.bg-warning-subtle { background-color: #fff7ed !important; }
+.bg-info-subtle { background-color: #e0f2fe !important; }
+
+.text-danger { color: #dc2626 !important; }
+.text-warning-emphasis { color: #9a3412 !important; }
+.text-info-emphasis { color: #0369a1 !important; }
+
+.border-danger { border-color: #fecaca !important; }
+.border-warning { border-color: #ffedd5 !important; }
+.border-info { border-color: #bae6fd !important; }
+
+tr:hover {
+    background-color: #fdfdfd;
+}
+
+h2 {
+    letter-spacing: -0.02em;
+}

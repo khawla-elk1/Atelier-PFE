@@ -1,0 +1,16 @@
+                                                                                    0                    1       2              3       4            5            6   7
+0                                                        SUIVI STOCK: MAGASIN CENTRAL                  NaN     NaN            NaN     NaN          NaN          NaN NaN
+1   MAGASINIER: BELKOUNSO MOUHSIN                                               DATE:  2026-04-04 00:00:00     NaN            NaN     NaN          NaN          NaN NaN
+2                                                                         DESIGNATION                ENTRE  SORTIE  STOCK INITIAL  RETOUR  STOCK FINAL  EMPLACEMENT NaN
+3                                                   ACCOPLEMENT SLEEVE BOMAG 05614105                   10     NaN            NaN     NaN           10       R4/BB4 NaN
+4                                                              ACCOUPLEMENT 414-00047                  NaN     NaN              2     NaN            2        R3/R2 NaN
+5                                                       ACCOUPLEMENT AMMAN 9512000331                  NaN     NaN              1     NaN            1       R4/BB4 NaN
+6                                        ACCOUPLEMENT DE VENTILATEUR SACHS 2100502002                  NaN     NaN              1     NaN            1        R2/J5 NaN
+7                                                                 ACCOUPLEMENT HRF110                  NaN      -1              2     NaN            1        R4/Y1 NaN
+8                                                                 ACCOUPLEMENT HRF130                  NaN     NaN              1     NaN            1        R4/Y1 NaN
+9                                                               ACCOUPLEMENT K1013827                  NaN     NaN              2     NaN            2        R3/R2 NaN
+10                                                    ACCOUPLEMENT KIT BOMAG 05614089                  NaN     NaN              1     NaN            1       R4/BB4 NaN
+11                                                      ACCUMILATEUR HYD VOLVO C26496                  NaN     NaN              1     NaN            1        R2/K4 NaN
+12                                                      ACCUMILATEUR HYD VOLVO S26530                  NaN     NaN              1     NaN            1        R2/K4 NaN
+13                                                         ACCUMULATEUR A VESSRO P360                  NaN     NaN              1     NaN            1        R4/Y1 NaN
+14                                                             ACTIONNEUR CAT 3E-8815                  NaN     NaN              1     NaN            1        R2/N4 NaN
