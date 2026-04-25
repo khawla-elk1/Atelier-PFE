@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Engin, Intervention, Anomalie, Utilisateur, DashboardKPIs } from '../models/models';
 
-// Mode développement - L'API backend Spring Boot tourne sur le port 8081
 const API_URL = '/api';
 
 @Injectable({
@@ -13,125 +13,124 @@ export class ApiService {
   constructor(private http: HttpClient) { }
 
   // --- Dashboard KPI ---
-  getDashboardKpis(): Observable<any> {
-    return this.http.get(`${API_URL}/dashboard/kpi`);
+  getDashboardKpis(): Observable<DashboardKPIs> {
+    return this.http.get<DashboardKPIs>(`${API_URL}/dashboard/kpi`);
   }
 
   // --- Matériels & Engins ---
-  getMateriels(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/engins`);
+  getMateriels(): Observable<Engin[]> {
+    return this.http.get<Engin[]>(`${API_URL}/engins`);
   }
 
-  getMaterielById(id: number): Observable<any> {
-    return this.http.get<any>(`${API_URL}/engins/${id}`);
+  getMaterielById(id: number): Observable<Engin> {
+    return this.http.get<Engin>(`${API_URL}/engins/${id}`);
   }
 
-  createMateriel(engin: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/engins`, engin);
+  createMateriel(engin: Engin): Observable<Engin> {
+    return this.http.post<Engin>(`${API_URL}/engins`, engin);
   }
 
   // --- Anomalies ---
-  getAnomalies(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/anomalies`);
+  getAnomalies(): Observable<Anomalie[]> {
+    return this.http.get<Anomalie[]>(`${API_URL}/anomalies`);
   }
 
-  createAnomalie(anomalie: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/anomalies`, anomalie);
+  createAnomalie(anomalie: Partial<Anomalie>): Observable<Anomalie> {
+    return this.http.post<Anomalie>(`${API_URL}/anomalies`, anomalie);
   }
 
-  deleteAnomalie(id: number): Observable<any> {
-    return this.http.delete<any>(`${API_URL}/anomalies/${id}`);
+  deleteAnomalie(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/anomalies/${id}`);
   }
 
   // --- Interventions ---
-  getInterventions(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/interventions`);
+  getInterventions(): Observable<Intervention[]> {
+    return this.http.get<Intervention[]>(`${API_URL}/interventions`);
   }
 
-  createIntervention(intervention: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/interventions`, intervention);
+  createIntervention(intervention: Partial<Intervention>): Observable<Intervention> {
+    return this.http.post<Intervention>(`${API_URL}/interventions`, intervention);
   }
 
-  validerEtCloturerIntervention(id: number, params: string): Observable<any> {
-    return this.http.put<any>(`${API_URL}/interventions/${id}/cloturer?${params}`, {});
+  validerEtCloturerIntervention(id: number, params: string): Observable<Intervention> {
+    return this.http.put<Intervention>(`${API_URL}/interventions/${id}/cloturer?${params}`, {});
   }
 
-  mettreEnAttentePieces(id: number): Observable<any> {
-    return this.http.put<any>(`${API_URL}/interventions/${id}/attente-pieces`, {});
+  mettreEnAttentePieces(id: number): Observable<Intervention> {
+    return this.http.put<Intervention>(`${API_URL}/interventions/${id}/attente-pieces`, {});
   }
 
-  assignerTechnicien(id: number, technicienId: number): Observable<any> {
-    return this.http.put<any>(`${API_URL}/interventions/${id}/assigner-technicien?technicienId=${technicienId}`, {});
+  assignerTechnicien(id: number, technicienId: number): Observable<Intervention> {
+    return this.http.put<Intervention>(`${API_URL}/interventions/${id}/assigner-technicien?technicienId=${technicienId}`, {});
   }
 
-  deleteIntervention(id: number): Observable<any> {
-    return this.http.delete<any>(`${API_URL}/interventions/${id}`);
+  deleteIntervention(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/interventions/${id}`);
   }
 
   // --- Utilisateurs / Techniciens ---
-  getTechniciens(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/utilisateurs/techniciens`);
+  getTechniciens(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${API_URL}/utilisateurs/techniciens`);
   }
 
-  saisieTechnicien(tech: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/utilisateurs/saisie-technicien`, tech);
+  saisieTechnicien(tech: Partial<Utilisateur>): Observable<Utilisateur> {
+    return this.http.post<Utilisateur>(`${API_URL}/utilisateurs/saisie-technicien`, tech);
   }
 
-  getTechniciensEnAttente(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/utilisateurs/techniciens-en-attente`);
+  getTechniciensEnAttente(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${API_URL}/utilisateurs/techniciens-en-attente`);
   }
 
-  validerTechnicien(idUser: number, statutValidation: string): Observable<any> {
-    return this.http.put<any>(`${API_URL}/utilisateurs/technicien-validation/${idUser}?statutValidation=${statutValidation}`, {});
+  validerTechnicien(idUser: number, statutValidation: string): Observable<void> {
+    return this.http.put<void>(`${API_URL}/utilisateurs/technicien-validation/${idUser}?statutValidation=${statutValidation}`, {});
   }
 
   // --- STOCK & PIECES DE RECHANGE ---
-  
   getPieces(): Observable<any[]> {
     return this.http.get<any[]>(`${API_URL}/stock/pieces`);
   }
-  
+
   searchPieces(q: string): Observable<any[]> {
     return this.http.get<any[]>(`${API_URL}/stock/pieces/search?q=${q}`);
   }
 
   // --- DEMANDES DE SORTIE PIECES ---
-  
   getDemandesSortie(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/stock/demandes`);
+    return this.http.get<any[]>(`${API_URL}/stock/demandes-sortie`);
   }
 
   getDemandesEnAttente(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/stock/demandes/en-attente`);
+    return this.http.get<any[]>(`${API_URL}/stock/demandes-sortie/en-attente`);
   }
 
   creerDemandeSortie(demande: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/stock/demandes`, demande);
+    return this.http.post<any>(`${API_URL}/stock/demande-sortie`, demande);
   }
 
-  validerDemandeSortie(idDemande: number): Observable<any> {
-    return this.http.put<any>(`${API_URL}/stock/demandes/${idDemande}/valider`, {});
+  validerDemandeSortie(id: number): Observable<void> {
+    return this.http.put<void>(`${API_URL}/stock/demande-sortie/${id}/valider`, {});
   }
 
-  rejeterDemandeSortie(idDemande: number, motif: string): Observable<any> {
-    return this.http.put<any>(`${API_URL}/stock/demandes/${idDemande}/rejeter?motif=${motif}`, {});
+  rejeterDemandeSortie(id: number, motif: string = ''): Observable<void> {
+    return this.http.put<void>(`${API_URL}/stock/demande-sortie/${id}/rejeter?motif=${motif}`, {});
   }
 
-  // --- ERP Sync (Précommandes) ---
+  // --- PRECOMMANDES ERP ---
   getPrecommandes(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/precommandes`);
+    return this.http.get<any[]>(`${API_URL}/stock/precommandes`);
   }
 
-  creerPrecommande(precommande: any): Observable<any> {
-    return this.http.post<any>(`${API_URL}/precommandes`, precommande);
+  creerPrecommande(precom: any): Observable<any> {
+    return this.http.post<any>(`${API_URL}/stock/precommande`, precom);
   }
 
-  genererXmlErp(idPrecommande: number): Observable<any> {
-    return this.http.post(`${API_URL}/precommandes/${idPrecommande}/generer-erp`, {});
-  }
-
-  // --- Maintenance Prédictive ---
+  // --- MAINTENANCE PREDICTIVE IA ---
   getPredictiveMaintenance(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/maintenance/predict`);
+    return this.http.get<any[]>(`${API_URL}/maintenance-predictive/predictions`);
+  }
+
+  // --- ERP SYNC ---
+  genererXmlErp(id: number): Observable<any> {
+    return this.http.get(`${API_URL}/erp/export-xml/${id}`);
   }
 }

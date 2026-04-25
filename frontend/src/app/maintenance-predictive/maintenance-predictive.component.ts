@@ -22,11 +22,11 @@ export class MaintenancePredictiveComponent implements OnInit {
   loadPredictions(): void {
     this.loading = true;
     this.apiService.getPredictiveMaintenance().subscribe({
-      next: (data) => {
+      next: (data: any[]) => {
         this.predictions = data;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur maintenance:', err);
         this.loading = false;
       }

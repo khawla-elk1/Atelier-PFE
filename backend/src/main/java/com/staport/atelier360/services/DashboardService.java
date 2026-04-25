@@ -67,7 +67,7 @@ public class DashboardService {
         kpis.put("countEngins", countEngins);
         kpis.put("countCamions", countCamions);
         kpis.put("countVoitures", countVoitures);
-        kpis.put("tauxDisponibilite", String.format("%.1f%%", tauxDisponibilite));
+        kpis.put("tauxDisponibilite", String.format(java.util.Locale.US, "%.1f%%", tauxDisponibilite));
         
         // MTTR (Mean Time To Repair)
         var interventions = interventionRepository.findAll();
@@ -78,7 +78,7 @@ public class DashboardService {
                 .filter(i -> i.getDureeReelle() != null).count();
         double mttr = interventionsTerminees > 0 ? totalDuree / interventionsTerminees : 0.0;
         
-        kpis.put("mttrHeures", String.format("%.1f h", mttr));
+        kpis.put("mttrHeures", String.format(java.util.Locale.US, "%.1f h", mttr));
         kpis.put("totalAnomaliesEnCours", anomalieRepository.findByStatut("Signalée").size());
 
         return kpis;

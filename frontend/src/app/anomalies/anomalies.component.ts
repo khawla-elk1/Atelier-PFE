@@ -9,171 +9,228 @@ import { ApiService } from '../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-slide-up">
-      <div class="flex-row space-between header-title">
+    <div class="enterprise-container">
+      <div class="page-header">
         <div>
-          <h1>Anomalies Signalées</h1>
-          <p class="subtitle">Réception des appels chauffeurs & Signalements</p>
+          <h1 class="page-title">Gestion des Anomalies</h1>
+          <p class="page-subtitle">Suivi des signalements et génération des ordres de travail</p>
         </div>
-        <button class="btn-primary" (click)="toggleForm()" style="display: flex; align-items: center; gap: 8px;">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-          {{ showForm ? 'Annuler la saisie' : 'Nouvel Appel Chauffeur' }}
+        <button class="btn-primary" (click)="toggleForm()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Nouveau Signalement
         </button>
       </div>
 
-      <!-- KPI METRICS -->
-      <div class="kpi-grid">
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.05s;">
-          <div class="kpi-icon" style="background: var(--warning-light); color: var(--warning);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>ANOMALIES EN ATTENTE</h3>
-            <div class="kpi-value">{{ countATraiter }}</div>
-            <div class="kpi-trend" style="color: var(--warning)">À diagnostiquer</div>
-          </div>
+      <!-- KPI Metrics (Sober Enterprise Look) -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">À traiter</div>
+          <div class="metric-value text-warning">{{ countATraiter }}</div>
         </div>
-
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.1s;">
-          <div class="kpi-icon" style="background: var(--danger-light); color: var(--danger);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>CASSES URGENTES</h3>
-            <div class="kpi-value">{{ countUrgentes }}</div>
-            <div class="kpi-trend" style="color: var(--danger)">Priorité Haute</div>
-          </div>
+        <div class="metric-card">
+          <div class="metric-title">Urgentes</div>
+          <div class="metric-value text-danger">{{ countUrgentes }}</div>
         </div>
-
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.15s;">
-          <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>ANOMALIES RÉPARÉES</h3>
-            <div class="kpi-value">{{ countResolues }}</div>
-            <div class="kpi-trend" style="color: var(--success)">Interventions terminées</div>
-          </div>
+        <div class="metric-card">
+          <div class="metric-title">Résolues</div>
+          <div class="metric-value text-success">{{ countResolues }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Total</div>
+          <div class="metric-value text-primary">{{ anomalies.length }}</div>
         </div>
       </div>
 
-      <!-- FORMULAIRE DE SAISIE PAR LE CHEF -->
-      <div *ngIf="showForm" class="glass-panel form-panel animate-slide-up" style="margin-bottom: 20px; border-left: 3px solid #ef4444;">
-        <h2 style="margin-bottom: 16px; font-size: 1.1rem; color: #ef4444;">Nouvelle Déclaration d'Anomalie</h2>
-        <form [formGroup]="anomalieForm" (ngSubmit)="soumettreAnomalie()" class="form-grid">
-          <div class="form-group">
-            <label>Véhicule / Matériel Concerné *</label>
-            <input list="engins-list" formControlName="engin" class="input-field" placeholder="ex: CH-09... (Recherche)" autocomplete="off">
-            <datalist id="engins-list">
-              <option *ngFor="let engin of listeEngins" [value]="engin.matricule || engin.codeMateriel">
-                {{ engin.codeMateriel || engin.matricule }} - {{ engin.marque }} {{ engin.modele }}
-              </option>
-            </datalist>
-          </div>
-          <div class="form-group">
-            <label>Niveau d'Urgence *</label>
-            <select formControlName="criticite" class="input-field">
-              <option value="NORMALE">Normale (Entretien Régulier)</option>
-              <option value="PLANIFIEE">Planifiée (À prévoir bientôt)</option>
-              <option value="URGENTE">Urgente / Critique (Panne bloquante)</option>
-            </select>
-          </div>
-          <div class="form-group" style="grid-column: span 2;">
-            <label>Description du Problème (Rapport du Chauffeur) *</label>
-            <input type="text" formControlName="description" class="input-field" placeholder="Décrivez les symptômes remontés par le chauffeur...">
-          </div>
-          <div class="form-group" style="display:flex; align-items: flex-end;">
-            <button type="submit" class="btn-primary" style="background:#ef4444; width:100%" [disabled]="anomalieForm.invalid">
-              Enregistrer l'Anomalie
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="glass-panel">
-        <table class="data-table">
+      <!-- Data Table -->
+      <div class="table-card">
+        <table class="enterprise-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Matériel / Véhicule</th>
+              <th width="80">Réf.</th>
+              <th width="200">Matériel / Véhicule</th>
               <th>Description</th>
-              <th>Date Signalement</th>
-              <th>Criticité</th>
-              <th>Statut</th>
-              <th>Actions</th>
+              <th width="150">Date</th>
+              <th width="120">Criticité</th>
+              <th width="120">Statut</th>
+              <th width="160" class="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let ano of anomalies">
-              <td>#ANO-{{ ano.idAnomalie | number:'3.0-0' }}</td>
+              <td><span class="ref-text">#{{ ano.idAnomalie | number:'3.0-0' }}</span></td>
               <td>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <div *ngIf="!ano.engin" style="color:var(--warning);" title="Matériel Supprimé ou Saisie Libre">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"></path></svg>
-                  </div>
-                  <strong>{{ ano.engin ? (ano.engin.codeMateriel || ano.engin.matricule) : (ano.enginDeclare || '— Non assigné') }}</strong>
-                </div>
-                <span style="display:block; font-size:0.75rem; color:#64748b;" *ngIf="ano.engin">{{ ano.engin.marque }} {{ ano.engin.modele }}</span>
+                <div class="engin-name">{{ ano.engin ? (ano.engin.codeMateriel || ano.engin.matricule) : (ano.enginDeclare || 'Non assigné') }}</div>
+                <div class="engin-sub" *ngIf="ano.engin">{{ ano.engin.marque }} {{ ano.engin.modele }}</div>
               </td>
-              <td>{{ ano.description }}</td>
-              <td>{{ ano.dateSignalement | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="desc-text" [title]="ano.description">{{ ano.description }}</td>
+              <td class="date-text">{{ ano.dateSignalement | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>
-                <span class="badge" [ngClass]="ano.criticite === 'URGENT' || ano.criticite === 'CRITIQUE' ? 'danger' : (ano.criticite === 'ELEVEE' ? 'warning' : 'success')">
-                  {{ ano.criticite || 'NORMAL' }}
+                <span class="badge" 
+                      [class.badge-danger]="ano.criticite === 'URGENTE'"
+                      [class.badge-warning]="ano.criticite === 'NORMALE'"
+                      [class.badge-info]="ano.criticite === 'PLANIFIEE'">
+                  {{ ano.criticite }}
                 </span>
               </td>
               <td>
-                <span class="badge" [ngClass]="getStatutBadge(ano.statut)">
-                  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor; margin-right:4px;"></span>
+                <span class="badge" 
+                      [class.badge-primary]="isATraiter(ano.statut)"
+                      [class.badge-success]="isResolu(ano.statut)">
                   {{ ano.statut }}
                 </span>
               </td>
-              <td>
-                <button class="btn-primary small" 
+              <td class="actions-cell">
+                <button class="btn-action btn-action-primary" 
                         *ngIf="isATraiter(ano.statut)" 
-                        (click)="creerIntervention(ano)" style="display:flex; align-items:center; gap:4px;">
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                  Générer Ordre
+                        (click)="creerIntervention(ano)" 
+                        title="Créer une intervention corrective">
+                  Créer OT
                 </button>
-                <button class="btn-primary small" 
+                <button class="btn-action btn-action-disabled" 
                         *ngIf="!isATraiter(ano.statut)" 
-                        disabled style="opacity: 0.5; background:var(--bg); color:var(--text); box-shadow:none;">
-                  {{ isResolu(ano.statut) ? 'Côté Atelier : Terminé' : 'Atelier : En Cours' }}
+                        disabled>
+                  En cours
                 </button>
-                <button class="btn-action ghost-danger" style="margin-left:8px;"
-                        (click)="supprimerAnomalie(ano)" title="Supprimer l'anomalie">
-                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button class="btn-icon btn-icon-danger" 
+                        (click)="supprimerAnomalie(ano)" 
+                        title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
               </td>
             </tr>
             <tr *ngIf="anomalies.length === 0">
-              <td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">Aucune anomalie à afficher.</td>
+              <td colspan="7" class="empty-state">Aucune donnée trouvée.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Modal Form -->
+      <div class="modal-backdrop" *ngIf="showForm" (click)="toggleForm()">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Nouveau Signalement</h2>
+            <button class="btn-close" (click)="toggleForm()">×</button>
+          </div>
+          <form [formGroup]="anomalieForm" (ngSubmit)="soumettreAnomalie()">
+            <div class="modal-body">
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Matériel concerné <span class="required">*</span></label>
+                  <select formControlName="engin" class="form-control">
+                    <option value="">Sélectionnez un équipement...</option>
+                    <option *ngFor="let e of listeEngins" [value]="e.matricule || e.codeMateriel">
+                      {{ e.codeMateriel || e.matricule }} - {{ e.marque }} {{ e.modele }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label>Criticité <span class="required">*</span></label>
+                  <select formControlName="criticite" class="form-control">
+                    <option value="NORMALE">Normale</option>
+                    <option value="PLANIFIEE">Planifiée</option>
+                    <option value="URGENTE">Urgente</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description détaillée <span class="required">*</span></label>
+                <textarea formControlName="description" class="form-control" rows="4" placeholder="Décrivez le problème constaté..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" (click)="toggleForm()">Annuler</button>
+              <button type="submit" class="btn-primary" [disabled]="anomalieForm.invalid">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .header-title { margin-bottom: 20px; }
-    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
-    .form-panel { padding: 20px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: .78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+    .enterprise-container { padding: 32px; background-color: #f8fafc; min-height: 100vh; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #0f172a; }
+    
+    /* Header */
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+    .page-title { font-size: 1.5rem; font-weight: 600; color: #0f172a; margin: 0 0 4px 0; }
+    .page-subtitle { font-size: 0.875rem; color: #64748b; margin: 0; }
+    
+    /* Buttons */
+    .btn-primary { display: flex; align-items: center; gap: 8px; background-color: #2563eb; color: white; border: none; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background-color 0.15s; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .btn-secondary { background-color: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .btn-secondary:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+    
+    /* Metrics */
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .metric-title { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; }
+    .text-warning { color: #d97706; }
+    .text-danger { color: #dc2626; }
+    .text-success { color: #059669; }
+    .text-primary { color: #2563eb; }
 
-    .btn-action {
-      display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
-      border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; background: transparent;
-    }
-    .btn-action.ghost-danger { color: #94a3b8; }
-    .btn-action.ghost-danger:hover { color: #ef4444; background: #fef2f2; }
+    /* Table */
+    .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .enterprise-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .enterprise-table th { background-color: #f8fafc; padding: 12px 16px; font-size: 0.75rem; font-weight: 600; color: #475569; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .enterprise-table td { padding: 12px 16px; font-size: 0.875rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .enterprise-table tbody tr:hover { background-color: #f8fafc; }
+    .enterprise-table tbody tr:last-child td { border-bottom: none; }
+    
+    .ref-text { font-family: monospace; color: #64748b; font-size: 0.8125rem; }
+    .engin-name { font-weight: 500; color: #0f172a; }
+    .engin-sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .desc-text { color: #334155; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .date-text { color: #475569; font-size: 0.8125rem; }
+    .text-right { text-align: right; }
+    .empty-state { text-align: center; color: #94a3b8; padding: 32px !important; }
+
+    /* Badges */
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .badge-primary { background-color: #dbeafe; color: #1e40af; }
+    .badge-success { background-color: #d1fae5; color: #065f46; }
+    .badge-danger { background-color: #fee2e2; color: #991b1b; }
+    .badge-warning { background-color: #fef3c7; color: #92400e; }
+    .badge-info { background-color: #e0e7ff; color: #3730a3; }
+
+    /* Actions */
+    .actions-cell { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+    .btn-action { padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: all 0.15s; }
+    .btn-action-primary { background-color: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+    .btn-action-primary:hover { background-color: #e2e8f0; color: #2563eb; border-color: #2563eb; }
+    .btn-action-disabled { background-color: #f8fafc; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; }
+    
+    .btn-icon { background: none; border: none; color: #94a3b8; padding: 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-icon:hover { background-color: #fee2e2; color: #dc2626; }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 50; }
+    .modal-container { background: white; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 600px; overflow: hidden; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a; }
+    .btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; line-height: 1; padding: 0; }
+    .btn-close:hover { color: #0f172a; }
+    
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
+    
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .flex-1 { flex: 1; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.8125rem; font-weight: 500; color: #334155; margin-bottom: 6px; }
+    .required { color: #dc2626; }
+    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; color: #0f172a; box-sizing: border-box; transition: border-color 0.15s; font-family: inherit; }
+    .form-control:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+    textarea.form-control { resize: vertical; min-height: 80px; }
   `]
 })
 export class AnomaliesComponent implements OnInit {
   anomalies: any[] = [];
   listeEngins: any[] = [];
-  
+
   showForm: boolean = false;
   anomalieForm: FormGroup;
 
@@ -207,7 +264,7 @@ export class AnomaliesComponent implements OnInit {
         this.anomalies = data;
         this.countATraiter = this.anomalies.filter(a => this.isATraiter(a.statut)).length;
         this.countResolues = this.anomalies.filter(a => this.isResolu(a.statut)).length;
-        this.countUrgentes = this.anomalies.filter(a => a.criticite === 'URGENTE' || a.criticite === 'CRITIQUE').length;
+        this.countUrgentes = this.anomalies.filter(a => a.criticite === 'URGENTE').length;
       },
       error: (err) => console.error("Erreur chargement anomalies", err)
     });
@@ -215,47 +272,44 @@ export class AnomaliesComponent implements OnInit {
 
   toggleForm(): void {
     this.showForm = !this.showForm;
+    if (this.showForm) {
+      this.anomalieForm.reset({ criticite: 'NORMALE' });
+    }
   }
 
   soumettreAnomalie(): void {
     if (this.anomalieForm.valid) {
       let selectedValue = this.anomalieForm.value.engin;
       if (typeof selectedValue === 'string') {
-          selectedValue = selectedValue.trim();
+        selectedValue = selectedValue.trim();
       }
-      
-      const matchedEngin = this.listeEngins.find(e => 
-          (e.matricule && e.matricule.trim() === selectedValue) || 
-          (e.codeMateriel && e.codeMateriel.trim() === selectedValue)
+
+      const matchedEngin = this.listeEngins.find(e =>
+        (e.matricule && e.matricule.trim() === selectedValue) ||
+        (e.codeMateriel && e.codeMateriel.trim() === selectedValue)
       );
-      
+
       const payload = {
         engin: matchedEngin ? { idEngin: matchedEngin.idEngin } : null,
         enginDeclare: matchedEngin ? ((matchedEngin.codeMateriel || matchedEngin.matricule) + ' - ' + matchedEngin.marque + ' ' + matchedEngin.modele) : (selectedValue ? selectedValue : 'Matériel Inconnu'),
         criticite: this.anomalieForm.value.criticite,
         description: this.anomalieForm.value.description,
-        statut: 'A_TRAITER'
+        statut: 'A_TRAITER',
+        dateSignalement: new Date().toISOString()
       };
 
-      console.log("Submitting payload: ", payload);
-
-      this.api.createAnomalie(payload).subscribe({
+      this.api.createAnomalie(payload as any).subscribe({
         next: () => {
           this.chargerAnomalies();
-          this.anomalieForm.reset({ criticite: 'NORMALE' });
-          this.showForm = false;
+          this.toggleForm();
         },
         error: (err) => {
           console.error("Erreur création anomalie", err);
-          alert("Erreur lors de la création de l'anomalie. Veuillez vérifier que l'engin sélectionné existe bien dans la liste.");
+          alert("Erreur lors de l'enregistrement de l'anomalie.");
         }
       });
-    } else {
-      alert("Veuillez remplir tous les champs obligatoires correctement.");
     }
   }
-
-
 
   isATraiter(statut: string): boolean {
     if (!statut) return true;
@@ -269,43 +323,42 @@ export class AnomaliesComponent implements OnInit {
     return s.includes('resolu') || s.includes('termin') || s.includes('clotur');
   }
 
-  getStatutBadge(statut: string): string {
-    if (!statut) return 'warning';
-    const s = statut.toLowerCase();
-    if (s.includes('resolu') || s.includes('termin')) return 'success';
-    if (s.includes('cours')) return 'primary';
-    return 'warning';
-  }
-
   creerIntervention(ano: any): void {
-    if(confirm("Créer un Ordre de Travail (Intervention) pour cette anomalie ?")) {
+    if (confirm("Créer un Ordre de Travail (Intervention) pour cette anomalie ?")) {
       const payload = {
         engin: ano.engin ? { idEngin: ano.engin.idEngin } : null,
         enginDeclare: ano.enginDeclare,
         anomalie: { idAnomalie: ano.idAnomalie },
-        type: 'Corrective'
+        type: 'Corrective',
+        statut: 'EN_ATTENTE',
+        dateDebut: new Date().toISOString()
       };
-      
-      this.api.createIntervention(payload).subscribe({
+
+      this.api.createIntervention(payload as any).subscribe({
         next: () => {
+          this.chargerAnomalies(); // Refresh the list
           this.router.navigate(['/interventions']);
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error("Erreur lors de la création de l'intervention", err);
+          alert("Impossible de créer l'ordre de travail.");
+        }
       });
     }
   }
 
   supprimerAnomalie(ano: any): void {
-    if (confirm(`Voulez-vous vraiment supprimer l'anomalie #ANO-${ano.idAnomalie} ?`)) {
+    if (confirm(`Voulez-vous vraiment supprimer l'anomalie #${ano.idAnomalie} ?`)) {
       this.api.deleteAnomalie(ano.idAnomalie).subscribe({
         next: () => {
           this.chargerAnomalies();
         },
         error: (err) => {
           console.error("Erreur suppression anomalie", err);
-          alert("Erreur lors de la suppression. Il est possible qu'elle soit liée à une intervention existante.");
+          alert("Erreur lors de la suppression. Cette anomalie est peut-être liée à un ordre de travail existant.");
         }
       });
     }
   }
 }
+

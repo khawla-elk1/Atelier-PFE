@@ -1,11 +1,11 @@
 package com.staport.atelier360.services;
 
 import com.staport.atelier360.entities.Intervention;
+import com.staport.atelier360.entities.Utilisateur;
 import com.staport.atelier360.repositories.InterventionRepository;
+import com.staport.atelier360.repositories.AnomalieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.staport.atelier360.repositories.AnomalieRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,21 +55,17 @@ public class InterventionService {
     }
 
     public Intervention cloturerIntervention(Long id, LocalDateTime dateFin, Double dureeReelle, Double cout, String observations) {
-        Optional<Intervention> opt = interventionRepository.findById(id);
-        if (opt.isPresent()) {
-            Intervention intervention = opt.get();
+        return interventionRepository.findById(id).map(intervention -> {
             intervention.setDateFin(dateFin != null ? dateFin : LocalDateTime.now());
             intervention.setDureeReelle(dureeReelle);
             intervention.setCout(cout);
             intervention.setObservations(observations);
             intervention.setStatut("Clôturée");
             
-            // On peut ici changer le statut de l'engin (ex: le remettre en service)      
             if (intervention.getEngin() != null) {
-                intervention.getEngin().setStatut("En Service");
+                intervention.getEngin().setStatut("ACTIF");
             }
             
-            // Mettre à jour l'anomalie liée (si corrective)
             if (intervention.getAnomalie() != null) {
                  anomalieRepository.findById(intervention.getAnomalie().getIdAnomalie()).ifPresent(anomalie -> {
                      anomalie.setStatut("RESOLUE");
@@ -78,33 +74,26 @@ public class InterventionService {
             }
 
             return interventionRepository.save(intervention);
-        }
-        throw new RuntimeException("Intervention introuvable avec l'ID: " + id);
+        }).orElseThrow(() -> new RuntimeException("Intervention introuvable avec l'ID: " + id));
     }
 
     public Intervention mettreEnAttentePieces(Long id) {
-        Optional<Intervention> opt = interventionRepository.findById(id);
-        if (opt.isPresent()) {
-            Intervention intervention = opt.get();
+        return interventionRepository.findById(id).map(intervention -> {
             intervention.setStatut("En Attente Pièces");
             return interventionRepository.save(intervention);
-        }
-        throw new RuntimeException("Intervention introuvable avec l'ID: " + id);
+        }).orElseThrow(() -> new RuntimeException("Intervention introuvable avec l'ID: " + id));
     }
 
     public Intervention assignerTechnicien(Long id, Long technicienId) {
-        Optional<Intervention> opt = interventionRepository.findById(id);
-        if (opt.isPresent()) {
-            Intervention intervention = opt.get();
-            com.staport.atelier360.entities.Utilisateur tech = new com.staport.atelier360.entities.Utilisateur();
+        return interventionRepository.findById(id).map(intervention -> {
+            Utilisateur tech = new Utilisateur();
             tech.setIdUser(technicienId);
             intervention.setTechnicien(tech);
-            if (intervention.getStatut().equals("Programmée")) {
+            if ("Programmée".equals(intervention.getStatut())) {
                 intervention.setStatut("En Cours");
             }
             return interventionRepository.save(intervention);
-        }
-        throw new RuntimeException("Intervention introuvable avec l'ID: " + id);
+        }).orElseThrow(() -> new RuntimeException("Intervention introuvable avec l'ID: " + id));
     }
 
     public void deleteIntervention(Long id) {

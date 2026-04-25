@@ -14,8 +14,8 @@ export class StockComponent implements OnInit {
 
   // Search logic
   searchQuery = '';
-  pieces: any[] = [];          // All pieces in RAM
-  piecesFiltrees: any[] = [];  // Filtered array before pagination
+  pieces: any[] = [];
+  piecesFiltrees: any[] = [];
 
   // Pagination
   currentPage = 1;
@@ -43,26 +43,24 @@ export class StockComponent implements OnInit {
 
   chargerInterventions(): void {
     this.apiService.getInterventions().subscribe({
-      next: (data) => {
-        // Only keep open interventions
+      next: (data: any[]) => {
         this.interventions = data.filter((i: any) => i.statut !== 'Clôturée');
       },
-      error: (err) => console.error("Erreur chargement interventions", err)
+      error: (err: any) => console.error("Erreur chargement interventions", err)
     });
   }
 
   chargerToutLeStock(): void {
     this.apiService.getPieces().subscribe({
-      next: (data) => {
+      next: (data: any[]) => {
         this.pieces = data;
         this.piecesFiltrees = data;
         this.currentPage = 1;
       },
-      error: (err) => console.error("Erreur chargement stock", err)
+      error: (err: any) => console.error("Erreur chargement stock", err)
     });
   }
 
-  // --- RECHERCHE ET PAGINATION ---
   get paginatedPieces(): any[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.piecesFiltrees.slice(start, start + this.itemsPerPage);
@@ -78,7 +76,6 @@ export class StockComponent implements OnInit {
     }
   }
 
-  // --- PAGINATION HISTORIQUE ---
   currentDemandesPage = 1;
   demandesPerPage = 5;
 
@@ -109,7 +106,6 @@ export class StockComponent implements OnInit {
     );
   }
 
-  // --- PANIER DEMANDE ---
   ajouterAuPanier(piece: any): void {
     if (!piece || piece.quantiteEnStock <= 0) {
       alert("⚠️ Rupture de stock ! Impossible d'ajouter cette pièce à la sortie.");
@@ -167,19 +163,18 @@ export class StockComponent implements OnInit {
         this.nouvelleDemande = { lignes: [], interventionId: '' };
         this.chargerDemandes();
       },
-      error: (err) => console.error(err)
+      error: (err: any) => console.error(err)
     });
   }
 
-  // --- VALIDATION ---
   chargerDemandes(): void {
     this.apiService.getDemandesSortie().subscribe({
-      next: (data) => this.demandes = data,
-      error: (err) => console.error(err)
+      next: (data: any[]) => this.demandes = data,
+      error: (err: any) => console.error(err)
     });
     this.apiService.getDemandesEnAttente().subscribe({
-      next: (data) => this.demandesEnAttente = data,
-      error: (err) => console.error(err)
+      next: (data: any[]) => this.demandesEnAttente = data,
+      error: (err: any) => console.error(err)
     });
   }
 
@@ -188,9 +183,9 @@ export class StockComponent implements OnInit {
       this.apiService.validerDemandeSortie(id).subscribe({
         next: () => {
           this.chargerDemandes();
-          this.chargerToutLeStock(); // update visually the available stock
+          this.chargerToutLeStock();
         },
-        error: (err) => console.error(err)
+        error: (err: any) => console.error(err)
       });
     }
   }
@@ -200,7 +195,7 @@ export class StockComponent implements OnInit {
     if(motif !== null) {
       this.apiService.rejeterDemandeSortie(id, motif).subscribe({
         next: () => this.chargerDemandes(),
-        error: (err) => console.error(err)
+        error: (err: any) => console.error(err)
       });
     }
   }

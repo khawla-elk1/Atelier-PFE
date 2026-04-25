@@ -8,291 +8,68 @@ import { ApiService } from '../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-slide-up">
-      <div class="flex-row space-between header-title">
+    <div class="enterprise-container">
+      <div class="page-header">
         <div>
-          <h1>Interventions / Ordres de Réparation</h1>
-          <p class="subtitle">Gestion du cahier de charge de l'atelier</p>
+          <h1 class="page-title">Gestion des Interventions</h1>
+          <p class="page-subtitle">Ordres de travail et historique de maintenance</p>
         </div>
         <button class="btn-primary" (click)="toggleForm()">
-          {{ showForm ? 'Annuler' : '+ Saisir Fiche Intervention' }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Créer un OT
         </button>
       </div>
 
-      <!-- KPI METRICS -->
-      <div class="kpi-grid">
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.05s;">
-          <div class="kpi-icon" style="background: var(--primary-light); color: var(--primary);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>EN COURS / PROGRAMMÉES</h3>
-            <div class="kpi-value">{{ countEnCours }}</div>
-            <div class="kpi-trend" style="color: var(--primary)">Atelier occupé</div>
-          </div>
+      <!-- KPI Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">En Cours</div>
+          <div class="metric-value text-primary">{{ countEnCours }}</div>
         </div>
-
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.1s;">
-          <div class="kpi-icon" style="background: var(--success-light); color: var(--success);">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.956 11.956 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>TOTAL CLÔTURÉES</h3>
-            <div class="kpi-value">{{ countTermine }}</div>
-            <div class="kpi-trend" style="color: var(--success)">Machines remises en service</div>
-          </div>
+        <div class="metric-card">
+          <div class="metric-title">Terminées</div>
+          <div class="metric-value text-success">{{ countTermine }}</div>
         </div>
-
-        <div class="glass-panel kpi-card animate-slide-up" style="animation-delay: 0.15s;">
-          <div class="kpi-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          </div>
-          <div class="kpi-info">
-            <h3>COÛT TOTAL M.O / AUTRES</h3>
-            <div class="kpi-value">{{ totalCout | number:'1.2-2' }} MAD</div>
-            <div class="kpi-trend" style="color: #8b5cf6">Global des réparations</div>
-          </div>
+        <div class="metric-card">
+          <div class="metric-title">Coût Total</div>
+          <div class="metric-value text-warning">{{ totalCout | number:'1.2-2' }} MAD</div>
         </div>
       </div>
 
-      <!-- ===== FORMULAIRE D'AJOUT ===== -->
-      <div *ngIf="showForm" class="glass-panel form-panel animate-slide-up" style="margin-bottom: 20px; border-left: 3px solid var(--accent);">
-        <h2 style="margin-bottom: 16px; font-size: 1.1rem;">Nouvelle Fiche Intervention</h2>
-        <form [formGroup]="interventionForm" (ngSubmit)="onSubmit()" class="form-grid">
-          <div class="form-group">
-            <label>Véhicule / Matériel Concerné *</label>
-            <input list="engins-list" formControlName="engin" class="input-field" placeholder="Rechercher un matériel (ex: CH-09, CAT)..." autocomplete="off">
-            <datalist id="engins-list">
-              <option *ngFor="let engin of listeEngins" [value]="engin.matricule || engin.codeMateriel">
-                {{ engin.codeMateriel || engin.matricule }} - {{ engin.marque }} {{ engin.modele }}
-              </option>
-            </datalist>
-          </div>
-          <div class="form-group">
-            <label>Type d'intervention *</label>
-            <select formControlName="type" class="input-field">
-              <option value="Préventive">Préventive</option>
-              <option value="Corrective">Corrective</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Date Début Prévu *</label>
-            <input type="date" formControlName="dateDebut" class="input-field">
-          </div>
-          <div class="form-group">
-            <label>Technicien Assigné</label>
-            <select formControlName="technicien" class="input-field">
-              <option value="">-- Sans assignation --</option>
-              <option *ngFor="let tech of listeTechniciens" [value]="tech.idUser">
-                {{ tech.prenom }} {{ tech.nom }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group" style="display:flex; align-items: flex-end;">
-            <button type="submit" class="btn-primary" [disabled]="interventionForm.invalid" style="width:100%">
-              Enregistrer
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- ===== MODAL BESOIN EN PIECES ===== -->
-      <div class="modal-overlay" *ngIf="modalPiecesActif">
-        <div class="modal-content animate-slide-up" style="max-width: 720px; width: 95%;">
-          <div class="modal-header" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 12px 12px 0 0;">
-            <h2 style="font-size: 1.15rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 10px;">
-              <svg width="22" height="22" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path></svg>
-              Besoins en Pièces — {{ modalPiecesActif?.idStr }}
-            </h2>
-            <button (click)="fermerModalPieces()" style="background:rgba(255,255,255,.15); border:none; border-radius:6px; padding: 4px 10px; font-size:1.2rem; cursor:pointer; color:#fff; line-height:1;">&#x2715;</button>
-          </div>
-
-          <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-            <!-- Bloc Recherche -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-              <label style="font-size:0.78rem; font-weight:600; color:#475569; text-transform:uppercase; display:block; margin-bottom:8px;">Rechercher une Pièce dans le Catalogue</label>
-              <div style="display:flex; gap:8px;">
-                <input type="text" [(ngModel)]="searchPiece" (input)="rechercherPieces()" 
-                       placeholder="Ex: filtre, courroie, roulement..." 
-                       class="input-field" style="flex:1; font-size:0.9rem;">
-              </div>
-
-              <!-- Résultats de Recherche -->
-              <div *ngIf="searchResultsPieces.length > 0" style="margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 6px; overflow:hidden; background:#fff;">
-                <div *ngFor="let piece of searchResultsPieces" 
-                     class="piece-suggestion-item"
-                     (click)="ajouterAuBesoin(piece)">
-                  <div>
-                    <span style="font-weight:600; font-size:0.9rem;">{{ piece.designation }}</span>
-                    <span style="display:block; font-size:0.77rem; color:#64748b;">Réf: {{ piece.reference || 'N/A' }} &nbsp;|&nbsp; Emplacement: {{ piece.emplacement || 'N/A' }}</span>
-                  </div>
-                  <div style="display:flex; align-items:center; gap:12px;">
-                    <span class="badge" [ngClass]="piece.quantiteEnStock > 2 ? 'success' : (piece.quantiteEnStock > 0 ? 'warning' : 'danger')">
-                      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:3px;"></span>
-                      Stock: {{ piece.quantiteEnStock }}
-                    </span>
-                    <button class="btn-primary small" style="padding:4px 10px; font-size:0.78rem;">
-                      + Ajouter
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <p *ngIf="searchPiece && searchResultsPieces.length === 0" style="color:#94a3b8; font-size:0.85rem; margin:8px 0 0;">
-                Aucune pièce trouvée. Elle sera commandée via Précommande ERP.
-              </p>
-            </div>
-
-            <!-- Panier des Besoins -->
-            <div *ngIf="besoinPanier.length > 0">
-              <h3 style="font-size:0.9rem; font-weight:700; color:#334155; margin-bottom:10px;">Pièces Sélectionnées :</h3>
-              <table class="data-table" style="font-size:0.88rem;">
-                <thead style="background:#f1f5f9;">
-                  <tr>
-                    <th>Désignation</th>
-                    <th style="text-align:center;">Stock Dispo</th>
-                    <th style="text-align:center; width:90px;">Qte Demandée</th>
-                    <th style="text-align:center;">Route</th>
-                    <th style="width:40px;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let item of besoinPanier; let i = index">
-                    <td style="font-weight:500;">{{ item.piece.designation }}</td>
-                    <td style="text-align:center;">
-                      <span class="badge" [ngClass]="item.piece.quantiteEnStock > 0 ? 'success' : 'danger'">{{ item.piece.quantiteEnStock }}</span>
-                    </td>
-                    <td style="text-align:center;">
-                      <input type="number" [(ngModel)]="item.quantite" (ngModelChange)="verifierQteBesoin(item)" 
-                             min="1" class="form-control" 
-                             style="width:60px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px; font-weight:bold;">
-                    </td>
-                    <td style="text-align:center;">
-                      <span *ngIf="item.piece.quantiteEnStock >= item.quantite" 
-                            class="badge success" style="font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        Sortie Magasin
-                      </span>
-                      <span *ngIf="item.piece.quantiteEnStock < item.quantite" 
-                            class="badge" style="background:#f3e8ff; color:#7c3aed; font-size:0.75rem; display:inline-flex; align-items:center; gap:4px;">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path></svg>
-                        Précommande ERP
-                      </span>
-                    </td>
-                    <td>
-                      <button (click)="retirerDuBesoin(i)" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1rem; font-weight:700;">✕</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <!-- Résumé -->
-              <div style="margin-top: 14px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size:0.85rem; color:#475569; display:flex; gap:20px;">
-                <span style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> <strong>{{ countSortie }}</strong> article(s) → Bon de Sortie</span>
-                <span style="display:flex; align-items:center; gap:6px;"><svg width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path></svg> <strong>{{ countPreco }}</strong> article(s) → Précommande</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display:flex; justify-content:space-between; align-items:center; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-            <button type="button" class="btn-primary" style="background:white; color:#475569; border:1px solid #cbd5e1; box-shadow:none;" (click)="fermerModalPieces()">Annuler</button>
-            <button type="button" class="btn-primary" 
-                    [disabled]="besoinPanier.length === 0 || enSoumission"
-                    style="background: linear-gradient(135deg, #0f172a, #1d4ed8); display:flex; align-items:center; gap:8px;"
-                    (click)="soumettreBesoinPieces()">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-              Valider les Besoins
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== MODAL DE CLOTURE ===== -->
-      <div class="modal-overlay" *ngIf="interventionACloturer">
-        <div class="modal-content animate-slide-up">
-          <div class="modal-header">
-            <h2 style="font-size: 1.25rem; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-              <svg width="24" height="24" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              Clôturer l'Ordre de Réparation {{ interventionACloturer.idStr }}
-            </h2>
-            <button (click)="interventionACloturer = null" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; line-height: 1;">&times;</button>
-          </div>
-          
-          <form [formGroup]="clotureForm" (ngSubmit)="soumettreCloture()">
-            <div class="modal-body">
-              <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 16px;">
-                <span class="badge" style="background:#e2e8f0; color:#334155"><svg width="14" height="14" style="margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>{{ interventionACloturer.engin }}</span>
-                <span><strong>Type:</strong> {{ interventionACloturer.type }}</span>
-                <span><strong>Ouvert le:</strong> {{ interventionACloturer.dateDebut }}</span>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 16px;">
-                <label>Durée d'Intervention (Total des Heures travaillées) <span style="color:red">*</span></label>
-                <input type="number" step="0.5" formControlName="dureeReelle" class="input-field" placeholder="Ex: 5.5">
-              </div>
-              
-              <div class="form-group" style="margin-bottom: 16px;">
-                <label>Coût M.O ou Externe (MAD)</label>
-                <input type="number" step="0.01" formControlName="cout" class="input-field" placeholder="Ex: 500">
-                <p style="font-size:0.8rem; color:#94a3b8; margin-top:4px; margin-bottom:0;">Info: Le coût des pièces est calculé via le magasin.</p>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 16px;">
-                <label>Rapport Technique de Clôture</label>
-                <textarea formControlName="observations" class="input-field" placeholder="Décrivez les réparations effectuées..." style="min-height: 100px; resize: vertical; padding: 12px;"></textarea>
-              </div>
-            </div>
-            
-            <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: flex-end; gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-              <button type="button" class="btn-primary" style="background:white; color:#475569; border: 1px solid #cbd5e1; box-shadow: none;" (click)="interventionACloturer = null">Annuler</button>
-              <button type="submit" class="btn-primary" style="background:#10b981; display:flex; align-items:center; gap:6px;" [disabled]="clotureForm.invalid">
-                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> 
-                 Validation Finale
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="glass-panel">
-        <table class="data-table">
+      <!-- Table View -->
+      <div class="table-card">
+        <table class="enterprise-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th width="80">Réf.</th>
               <th>Matériel / Véhicule</th>
               <th>Date Entrée</th>
-              <th>Date Sortie</th>
               <th>Immobilisation</th>
               <th>Technicien</th>
               <th>Statut</th>
-              <th>Actions</th>
+              <th class="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let int of interventions">
-              <td><strong>{{ int.idStr }}</strong></td>
-              <td>{{ int.engin }} <span style="display:block; font-size:0.75rem; color:#64748b">{{ int.type }}</span></td>
-              <td>{{ int.dateDebut }}</td>
+              <td><span class="ref-text">{{ int.idStr }}</span></td>
               <td>
-                <span *ngIf="int.dateFin !== '—'">{{ int.dateFin }}</span>
-                <span *ngIf="int.dateFin === '—'" style="color:var(--text-muted); font-style:italic;">En cours...</span>
+                <div class="engin-name">{{ int.engin }}</div>
+                <div class="engin-sub">{{ int.type }}</div>
               </td>
+              <td class="date-text">{{ int.dateDebut }}</td>
               <td>
-                <span style="font-weight:600;" [ngStyle]="{'color': int.joursArret > 30 && int.statut !== 'Clôturée' ? 'var(--danger)' : (int.joursArret > 7 && int.statut !== 'Clôturée' ? 'var(--warning)' : 'var(--text)')}">
+                <span [class.text-danger]="int.joursArret > 30 && int.statut !== 'Clôturée'"
+                      [class.text-warning]="int.joursArret > 7 && int.joursArret <= 30 && int.statut !== 'Clôturée'">
                   {{ int.joursArret > 0 ? int.joursArret + ' Jours' : "Même jour" }}
                 </span>
-                <div *ngIf="int.joursArret > 30 && int.statut !== 'Clôturée'" style="font-size:0.75rem; color:var(--danger); display:flex; align-items:center; gap:4px; margin-top:4px;">
-                   <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"></path></svg>
-                   Charge critique
-                </div>
               </td>
               <td>
-                <div *ngIf="int.technicienId; else nonAssigne">
-                  <span style="font-weight:500;">{{ int.technicien }}</span>
+                <div *ngIf="int.technicienId; else nonAssigne" class="tech-name">
+                  {{ int.technicien }}
                 </div>
                 <ng-template #nonAssigne>
-                  <select (change)="assignerTechnicien(int, $event)" 
-                          class="input-field" 
-                          style="padding: 4px 8px; font-size: 0.82rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #fafafa; cursor:pointer; min-width: 130px;"
-                          title="Affecter un technicien">
+                  <select (change)="assignerTechnicien(int, $event)" class="form-control-small">
                     <option value="">-- Affecter --</option>
                     <option *ngFor="let tech of listeTechniciens" [value]="tech.idUser">
                       {{ tech.prenom }} {{ tech.nom }}
@@ -301,104 +78,240 @@ import { ApiService } from '../services/api.service';
                 </ng-template>
               </td>
               <td>
-                <span class="badge" [ngClass]="getBadgeClass(int.statut)">
-                  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor; margin-right:4px;"></span>
+                <span class="badge" 
+                      [class.badge-primary]="int.statut === 'Programmée' || int.statut === 'En Cours'"
+                      [class.badge-warning]="int.statut === 'En Attente Pièces'"
+                      [class.badge-success]="int.statut === 'Clôturée'">
                   {{ int.statut }}
                 </span>
               </td>
               <td class="actions-cell">
-                <div class="action-buttons-group">
-                  <!-- Besoin Pièces -->
-                  <button class="btn-action primary"
-                          *ngIf="int.statut !== 'Clôturée'"
-                          (click)="ouvrirModalPieces(int)"
-                          title="Gérer les besoins en pièces">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path></svg>
-                    <span>Pièces</span>
-                  </button>
-  
-                  <!-- Bouton Attente Pièces -->
-                  <button class="btn-action warning" 
-                          *ngIf="int.statut === 'Programmée' || int.statut === 'En Cours'" 
-                          (click)="mettreEnAttente(int)" 
-                          title="Mettre en attente de pièces">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>Pause</span>
-                  </button>
-  
-                  <button class="btn-action success" *ngIf="int.statut !== 'Clôturée'" (click)="ouvrirCloture(int)" title="Clôturer l'intervention">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                    <span>Clôturer</span>
-                  </button>
-
-                  <!-- Suppression -->
-                  <button class="btn-icon-ghost" (click)="supprimerIntervention(int)" title="Supprimer définitivement l'intervention">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  </button>
-                  
-                  <span class="archived-label" *ngIf="int.statut === 'Clôturée'">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
-                    Archivée
-                  </span>
-                </div>
+                <button class="btn-action btn-action-primary" *ngIf="int.statut !== 'Clôturée'" (click)="ouvrirModalPieces(int)" title="Besoins en pièces">Pièces</button>
+                <button class="btn-action btn-action-warning" *ngIf="int.statut === 'Programmée' || int.statut === 'En Cours'" (click)="mettreEnAttente(int)" title="Mettre en attente">Pause</button>
+                <button class="btn-action btn-action-success" *ngIf="int.statut !== 'Clôturée'" (click)="ouvrirCloture(int)" title="Clôturer">Clôturer</button>
+                <button class="btn-icon btn-icon-danger" (click)="supprimerIntervention(int)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
               </td>
+            </tr>
+            <tr *ngIf="interventions.length === 0">
+              <td colspan="7" class="empty-state">Aucune intervention.</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Creation Modal -->
+      <div class="modal-backdrop" *ngIf="showForm" (click)="toggleForm()">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Nouveau Fiche Intervention</h2>
+            <button class="btn-close" (click)="toggleForm()">×</button>
+          </div>
+          <form [formGroup]="interventionForm" (ngSubmit)="onSubmit()">
+            <div class="modal-body">
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Matériel concerné *</label>
+                  <input list="engins-list" formControlName="engin" class="form-control" placeholder="Rechercher..." autocomplete="off">
+                  <datalist id="engins-list">
+                    <option *ngFor="let engin of listeEngins" [value]="engin.matricule || engin.codeMateriel">
+                      {{ engin.codeMateriel || engin.matricule }} - {{ engin.marque }} {{ engin.modele }}
+                    </option>
+                  </datalist>
+                </div>
+                <div class="form-group flex-1">
+                  <label>Type *</label>
+                  <select formControlName="type" class="form-control">
+                    <option value="Préventive">Préventive</option>
+                    <option value="Corrective">Corrective</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label>Date Début Prévu *</label>
+                  <input type="date" formControlName="dateDebut" class="form-control">
+                </div>
+                <div class="form-group flex-1">
+                  <label>Technicien Assigné</label>
+                  <select formControlName="technicien" class="form-control">
+                    <option value="">-- Sans assignation --</option>
+                    <option *ngFor="let tech of listeTechniciens" [value]="tech.idUser">
+                      {{ tech.prenom }} {{ tech.nom }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" (click)="toggleForm()">Annuler</button>
+              <button type="submit" class="btn-primary" [disabled]="interventionForm.invalid">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Cloture Modal -->
+      <div class="modal-backdrop" *ngIf="interventionACloturer" (click)="interventionACloturer = null">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Clôturer l'OT {{ interventionACloturer.idStr }}</h2>
+            <button class="btn-close" (click)="interventionACloturer = null">×</button>
+          </div>
+          <form [formGroup]="clotureForm" (ngSubmit)="soumettreCloture()">
+            <div class="modal-body">
+              <div class="form-group">
+                <label>Durée (Heures) *</label>
+                <input type="number" step="0.5" formControlName="dureeReelle" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Coût M.O (MAD)</label>
+                <input type="number" step="0.01" formControlName="cout" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Rapport Technique</label>
+                <textarea formControlName="observations" class="form-control" rows="4"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" (click)="interventionACloturer = null">Annuler</button>
+              <button type="submit" class="btn-primary" style="background-color: #059669;" [disabled]="clotureForm.invalid">Valider la clôture</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Pieces Modal -->
+      <div class="modal-backdrop" *ngIf="modalPiecesActif" (click)="fermerModalPieces()">
+        <div class="modal-container" style="max-width: 800px;" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Besoins en Pièces — {{ modalPiecesActif.idStr }}</h2>
+            <button class="btn-close" (click)="fermerModalPieces()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group" style="margin-bottom: 24px;">
+              <label>Rechercher une pièce</label>
+              <input type="text" [(ngModel)]="searchPiece" (input)="rechercherPieces()" class="form-control" placeholder="Ex: filtre...">
+              <div *ngIf="searchResultsPieces.length > 0" class="search-results">
+                <div *ngFor="let piece of searchResultsPieces" class="search-item" (click)="ajouterAuBesoin(piece)">
+                  <div class="flex-1">
+                    <div class="engin-name">{{ piece.designation }}</div>
+                    <div class="engin-sub">Ref: {{ piece.reference || 'N/A' }} | Stock: {{ piece.quantiteEnStock }}</div>
+                  </div>
+                  <button class="btn-action btn-action-primary">+ Ajouter</button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="besoinPanier.length > 0">
+              <h4 style="margin-bottom: 12px; font-weight: 600; color: #0f172a;">Panier des Besoins</h4>
+              <table class="enterprise-table" style="margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <thead>
+                  <tr>
+                    <th>Pièce</th>
+                    <th>Stock</th>
+                    <th width="100">Qté</th>
+                    <th width="50"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of besoinPanier; let i = index">
+                    <td>{{ item.piece.designation }}</td>
+                    <td><span class="badge" [class.badge-success]="item.piece.quantiteEnStock > 0" [class.badge-danger]="item.piece.quantiteEnStock === 0">{{ item.piece.quantiteEnStock }}</span></td>
+                    <td>
+                      <input type="number" [(ngModel)]="item.quantite" (ngModelChange)="verifierQteBesoin(item)" min="1" class="form-control" style="padding: 4px; text-align: center;">
+                    </td>
+                    <td><button class="btn-icon btn-icon-danger" (click)="retirerDuBesoin(i)">×</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="fermerModalPieces()">Fermer</button>
+            <button type="button" class="btn-primary" [disabled]="besoinPanier.length === 0 || enSoumission" (click)="soumettreBesoinPieces()">Valider Besoins</button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
-    .header-title { margin-bottom: 20px; }
-    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
-    .form-panel { padding: 20px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: .78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+    .enterprise-container { padding: 32px; background-color: #f8fafc; min-height: 100vh; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #0f172a; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+    .page-title { font-size: 1.5rem; font-weight: 600; color: #0f172a; margin: 0 0 4px 0; }
+    .page-subtitle { font-size: 0.875rem; color: #64748b; margin: 0; }
     
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-    }
-    .modal-content {
-      background: white; border-radius: 12px; width: 100%; max-width: 600px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-    .modal-header {
-      padding: 16px 24px; border-bottom: 1px solid #e2e8f0;
-      display: flex; justify-content: space-between; align-items: center;
-      background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px;
-    }
-    .modal-body { padding: 24px; }
-    .piece-suggestion-item {
-      display: flex; justify-content: space-between; align-items: center; 
-      padding: 10px 14px; border-bottom: 1px solid #f1f5f9; 
-      cursor: pointer; transition: background 0.15s;
-    }
-    .piece-suggestion-item:hover { background: #f8fafc; }
+    .btn-primary { display: flex; align-items: center; gap: 8px; background-color: #2563eb; color: white; border: none; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background-color 0.15s; }
+    .btn-primary:hover { background-color: #1d4ed8; }
+    .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .btn-secondary { background-color: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .btn-secondary:hover { background-color: #f1f5f9; border-color: #94a3b8; }
+    
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .metric-title { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; }
+    .text-warning { color: #d97706; }
+    .text-danger { color: #dc2626; }
+    .text-success { color: #059669; }
+    .text-primary { color: #2563eb; }
 
-    .actions-cell { width: 1%; white-space: nowrap; }
-    .action-buttons-group { display: flex; gap: 4px; }
-    .btn-action {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
-      border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
-      transition: all 0.2s var(--ease); border: 1px solid #e2e8f0;
-      background: #fff; color: #475569;
-    }
-    .btn-action:hover { border-color: #cbd5e1; background: #f8fafc; color: #1e293b; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .btn-action.primary { color: #1d4ed8; }
-    .btn-action.primary:hover { border-color: #1d4ed8; background: #eff6ff; }
-    .btn-action.warning { color: #d97706; }
-    .btn-action.warning:hover { border-color: #d97706; background: #fffbeb; }
-    .btn-action.success { color: #059669; }
-    .btn-action.success:hover { border-color: #059669; background: #ecfdf5; }
+    .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .enterprise-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .enterprise-table th { background-color: #f8fafc; padding: 12px 16px; font-size: 0.75rem; font-weight: 600; color: #475569; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+    .enterprise-table td { padding: 12px 16px; font-size: 0.875rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .enterprise-table tbody tr:hover { background-color: #f8fafc; }
+    .enterprise-table tbody tr:last-child td { border-bottom: none; }
     
-    .btn-icon-ghost { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: none; background: transparent; color: #94a3b8; transition: all 0.2s; }
-    .btn-icon-ghost:hover { color: #dc2626; background: #fef2f2; }
+    .ref-text { font-family: monospace; color: #64748b; font-size: 0.8125rem; font-weight: 500; }
+    .engin-name { font-weight: 600; color: #0f172a; }
+    .engin-sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+    .date-text { color: #475569; font-size: 0.8125rem; }
+    .text-right { text-align: right; }
+    .empty-state { text-align: center; color: #94a3b8; padding: 32px !important; }
+    .tech-name { font-weight: 500; }
+
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+    .badge-primary { background-color: #dbeafe; color: #1e40af; }
+    .badge-success { background-color: #d1fae5; color: #065f46; }
+    .badge-danger { background-color: #fee2e2; color: #991b1b; }
+    .badge-warning { background-color: #fef3c7; color: #92400e; }
+
+    .actions-cell { display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+    .btn-action { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: all 0.15s; }
+    .btn-action-primary { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .btn-action-primary:hover { background-color: #dbeafe; }
+    .btn-action-warning { background-color: #fffbeb; color: #d97706; border-color: #fde68a; }
+    .btn-action-warning:hover { background-color: #fef3c7; }
+    .btn-action-success { background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .btn-action-success:hover { background-color: #dcfce3; }
     
-    .archived-label { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #94a3b8; font-weight: 500; padding: 6px 10px; background: #f1f5f9; border-radius: 6px; }
+    .btn-icon { background: none; border: none; color: #94a3b8; padding: 4px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-icon:hover { background-color: #fee2e2; color: #dc2626; }
+
+    .modal-backdrop { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 50; }
+    .modal-container { background: white; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a; }
+    .btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; line-height: 1; padding: 0; }
+    .btn-close:hover { color: #0f172a; }
+    
+    .modal-body { padding: 20px; overflow-y: auto; }
+    .modal-footer { padding: 16px 20px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
+    
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .flex-1 { flex: 1; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.8125rem; font-weight: 500; color: #334155; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; color: #0f172a; box-sizing: border-box; font-family: inherit; }
+    .form-control:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+    .form-control-small { padding: 4px 8px; font-size: 0.8125rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+    
+    .search-results { border: 1px solid #e2e8f0; border-radius: 6px; margin-top: 4px; max-height: 200px; overflow-y: auto; }
+    .search-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+    .search-item:hover { background-color: #f8fafc; }
+    .search-item:last-child { border-bottom: none; }
   `]
 })
 export class InterventionsComponent implements OnInit {
@@ -472,21 +385,21 @@ export class InterventionsComponent implements OnInit {
           let strDate = '—';
           let strDateFin = '—';
           let joursArret = 0;
-          
+
           if (dbInt.dateDebut) {
             const dateObj = new Date(dbInt.dateDebut);
             strDate = dateObj.toLocaleDateString('fr-FR');
-            
+
             // Calcul du temps d'immobilisation
             const dateFinCal = dbInt.dateFin ? new Date(dbInt.dateFin) : new Date();
             if (dbInt.dateFin) {
-               strDateFin = dateFinCal.toLocaleDateString('fr-FR');
+              strDateFin = dateFinCal.toLocaleDateString('fr-FR');
             }
 
             const diffTime = Math.abs(dateFinCal.getTime() - dateObj.getTime());
             joursArret = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           }
-          
+
           return {
             idRaw: dbInt.idIntervention,
             idStr: '#INT-' + String(dbInt.idIntervention).padStart(3, '0'),
@@ -520,14 +433,14 @@ export class InterventionsComponent implements OnInit {
     if (this.interventionForm.valid) {
       let selectedValue = this.interventionForm.value.engin;
       if (typeof selectedValue === 'string') {
-          selectedValue = selectedValue.trim();
+        selectedValue = selectedValue.trim();
       }
-      
-      const matchedEngin = this.listeEngins.find(e => 
-          (e.matricule && e.matricule.trim() === selectedValue) || 
-          (e.codeMateriel && e.codeMateriel.trim() === selectedValue)
+
+      const matchedEngin = this.listeEngins.find(e =>
+        (e.matricule && e.matricule.trim() === selectedValue) ||
+        (e.codeMateriel && e.codeMateriel.trim() === selectedValue)
       );
-      
+
       const payload = {
         engin: matchedEngin ? { idEngin: matchedEngin.idEngin } : null,
         enginDeclare: matchedEngin ? ((matchedEngin.codeMateriel || matchedEngin.matricule) + ' - ' + matchedEngin.marque + ' ' + matchedEngin.modele) : (selectedValue ? selectedValue : 'Matériel Inconnu'),
@@ -536,7 +449,7 @@ export class InterventionsComponent implements OnInit {
         technicien: this.interventionForm.value.technicien ? { idUser: this.interventionForm.value.technicien } : null
       };
 
-      this.api.createIntervention(payload).subscribe({
+      this.api.createIntervention(payload as any).subscribe({
         next: () => {
           this.chargerInterventions();
           this.interventionForm.reset({ type: 'Préventive' });
@@ -579,11 +492,11 @@ export class InterventionsComponent implements OnInit {
     if (this.clotureForm.valid && this.interventionACloturer) {
       const id = this.interventionACloturer.idRaw;
       const vals = this.clotureForm.value;
-      
+
       const params = new URLSearchParams();
       params.append('dureeReelle', vals.dureeReelle);
-      if(vals.cout) params.append('cout', vals.cout);
-      if(vals.observations) params.append('observations', vals.observations);
+      if (vals.cout) params.append('cout', vals.cout);
+      if (vals.observations) params.append('observations', vals.observations);
 
       this.api.validerEtCloturerIntervention(id, params.toString()).subscribe({
         next: () => {
@@ -597,7 +510,7 @@ export class InterventionsComponent implements OnInit {
   }
 
   mettreEnAttente(int: any): void {
-    if(confirm(`Mettre l'intervention ${int.idStr} en attente de pièces ?`)) {
+    if (confirm(`Mettre l'intervention ${int.idStr} en attente de pièces ?`)) {
       this.api.mettreEnAttentePieces(int.idRaw).subscribe({
         next: () => {
           alert("L'intervention est maintenant en attente de pièces.");
