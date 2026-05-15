@@ -9,12 +9,16 @@ import { EquipeComponent } from './equipe/equipe.component';
 import { StockComponent } from './stock/stock.component';
 import { MaintenancePredictiveComponent } from './maintenance-predictive/maintenance-predictive.component';
 import { HistoriqueComponent } from './historique/historique.component';
+import { PlanInterventionComponent } from './plan-intervention/plan-intervention.component';
+import { ChantiersComponent } from './chantiers/chantiers.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'dashboard', component: DashboardComponent },
   { path: 'materiels', component: EnginsComponent },
+  { path: 'chantiers', component: ChantiersComponent },
   { path: 'anomalies', component: AnomaliesComponent },
+  { path: 'plans-intervention', component: PlanInterventionComponent },
   { path: 'interventions', component: InterventionsComponent },
   { path: 'historique', component: HistoriqueComponent },
   { path: 'maintenance-predictive', component: MaintenancePredictiveComponent },
@@ -23,3 +27,4 @@ export const routes: Routes = [
   { path: 'equipe', component: EquipeComponent },
   { path: 'stock', component: StockComponent }
 ];
+

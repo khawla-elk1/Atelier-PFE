@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface VidangeRepository extends JpaRepository<Vidange, Long> {
     List<Vidange> findByEnginIdEngin(Long enginId);
+    List<Vidange> findByEnginIdEnginIn(List<Long> enginIds);
 }

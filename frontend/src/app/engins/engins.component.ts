@@ -8,383 +8,341 @@ import { ApiService } from '../services/api.service';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
-    <div class="page-container animate-slide-up">
+    <div class="shell animate-slide-up">
+      <!-- MAIN -->
+      <div class="main">
+        <div class="content">
+          <div class="ph">
+            <div>
+              <div class="pt">Parc Matériels</div>
+              <div class="ps">{{ filteredEngins.length }} matériels affichés sur {{ actuelsCount }} en parc — Flotte STAPORT</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="icon-btn" aria-label="Exporter Excel"><i class="ti ti-file-spreadsheet" aria-hidden="true"></i></button>
+              <button class="icon-btn" aria-label="Imprimer"><i class="ti ti-printer" aria-hidden="true"></i></button>
+              <button class="btn-add" (click)="toggleForm()"><i class="ti ti-plus" aria-hidden="true"></i> {{ showForm ? 'Annuler' : 'Ajouter' }}</button>
+            </div>
+          </div>
 
-      <!-- ===== HEADER ===== -->
-      <div class="parc-header">
-        <div>
-          <h1>Parc Matériels</h1>
-          <p class="subtitle">{{ filteredEngins.length }} matériels sur {{ listeEngins.length }} — Flotte STAPORT</p>
-        </div>
-        <div class="header-actions">
-          <button class="btn-primary" (click)="toggleForm()" id="btn-add-materiel">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            {{ showForm ? 'Annuler' : 'Ajouter' }}
-          </button>
-        </div>
-      </div>
+          <!-- KPI CARDS -->
+          <div class="kpi-grid">
+            <div class="kpi" *ngFor="let k of kpis" [class.active]="selectedCategory === getKpiCat(k.type)" (click)="onKpiClick(k.type)">
+              <div class="kpi-icon" [ngClass]="{
+                'ki-all': k.type === 'total',
+                'ki-eng': k.type === 'engin',
+                'ki-cam': k.type === 'camion',
+                'ki-veh': k.type === 'voiture',
+                'ki-acc': k.type === 'accessoire',
+                'ki-out': k.type === 'vendu'
+              }">
+                 <i class="ti" [ngClass]="{
+                   'ti-layout-grid': k.type === 'total',
+                   'ti-crane': k.type === 'engin',
+                   'ti-truck': k.type === 'camion',
+                   'ti-car': k.type === 'voiture',
+                   'ti-settings': k.type === 'accessoire',
+                   'ti-x': k.type === 'vendu'
+                 }"></i>
+              </div>
+              <div><div class="kpi-val">{{ k.value }}</div><div class="kpi-lbl">{{ k.label }}</div></div>
+            </div>
+          </div>
 
-      <!-- ===== KPI MINIATURES ===== -->
-      <div class="kpi-row">
-        <div class="kpi-mini" *ngFor="let k of kpis">
-          <div class="kpi-mini-icon" [style.background]="k.bg">
-            <ng-container [ngSwitch]="k.type">
-              <svg *ngSwitchCase="'total'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-              <svg *ngSwitchCase="'engin'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4a044e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-              <svg *ngSwitchCase="'camion'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              <svg *ngSwitchCase="'voiture'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a2 2 0 0 0-1.6-.8H5a2 2 0 0 0-2 2v7h2m10 0a2.5 2.5 0 1 1-5 0m-5 0a2.5 2.5 0 1 1-5 0"></path></svg>
-              <svg *ngSwitchCase="'accessoire'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-            </ng-container>
+          <!-- TOOLBAR -->
+          <div class="toolbar">
+            <div class="search-row">
+              <div class="sw"><i class="ti ti-search" aria-hidden="true"></i>
+                <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Rechercher par code, marque, modèle, châssis, immatriculation…">
+              </div>
+              <div class="vbtns">
+                <button class="vbtn" [class.active]="currentView === 'table'" (click)="currentView = 'table'"><i class="ti ti-layout-list"></i></button>
+                <button class="vbtn" [class.active]="currentView === 'cards'" (click)="currentView = 'cards'"><i class="ti ti-layout-grid"></i></button>
+              </div>
+            </div>
+            <div class="pills-row">
+              <div class="pgrp">
+                <span class="plbl">Catégorie :</span>
+                <button *ngFor="let cat of categories" class="pill" [class.active]="selectedCategory === cat" (click)="selectCategory(cat)">{{ cat }}</button>
+              </div>
+              <div class="divider"></div>
+              <div class="pgrp">
+                <span class="plbl">Statut :</span>
+                <button *ngFor="let stat of statusOptions" class="pill" [class.active]="selectedStatus === stat" (click)="selectStatus(stat)">{{ stat }}</button>
+              </div>
+            </div>
           </div>
-          <div>
-            <div class="kpi-mini-value">{{ k.value }}</div>
-            <div class="kpi-mini-label">{{ k.label }}</div>
-          </div>
-        </div>
-      </div>
 
-      <!-- ===== FILTRES ===== -->
-      <div class="filter-bar glass-panel">
-        <div class="search-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()"
-                 placeholder="Rechercher par code, marque, modèle, châssis..."
-                 class="search-input" id="search-materiel">
-        </div>
-        <div class="filter-chips">
-          <button *ngFor="let cat of categories"
-                  class="chip"
-                  [class.active]="selectedCategory === cat"
-                  (click)="selectCategory(cat)">
-            {{ cat }}
-          </button>
-        </div>
-      </div>
+          <!-- TABLE VIEW -->
+          <div class="view" [class.active]="currentView === 'table'">
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:42px"><input type="checkbox" style="cursor:pointer"></th>
+                    <th style="width:160px">Matériel</th>
+                    <th style="width:110px">Code</th>
+                    <th style="width:100px">Marque</th>
+                    <th style="width:130px">Modèle / Type</th>
+                    <th style="width:100px">Catégorie</th>
+                    <th style="width:140px">N° Châssis</th>
+                    <th style="width:110px">Immatriculation</th>
+                    <th style="width:100px">Heures Prod.</th>
+                    <th style="width:85px">Statut</th>
+                    <th style="width:90px">Chantier</th>
+                    <th style="width:80px">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let engin of paginatedEngins" (click)="selectEngin(engin)" style="cursor:pointer">
+                    <td><input type="checkbox" style="cursor:pointer" (click)="$event.stopPropagation()"></td>
+                    <td>
+                      <div class="mat-cell">
+                        <div class="mat-thumb" [ngClass]="getCatColor(engin.categorie)">
+                          <i class="ti" [ngClass]="getCatIcon(engin.categorie)"></i>
+                        </div>
+                        <div><div class="mat-name">{{ engin.codeMateriel || engin.matricule }}</div><div class="mat-sub">{{ engin.marque }}</div></div>
+                      </div>
+                    </td>
+                    <td><span class="code-tag">{{ engin.codeMateriel || engin.matricule | slice:0:10 }}</span></td>
+                    <td>{{ engin.marque }}</td>
+                    <td style="font-size:12px;color:#5C6E8A">{{ engin.modele }}</td>
+                    <td>{{ engin.categorie }}</td>
+                    <td style="font-family:monospace;font-size:11px;color:#5C6E8A">{{ engin.serieChassis | slice:0:16 }}</td>
+                    <td style="font-family:monospace;font-size:12px;font-weight:600">{{ engin.immatriculation || '—' }}</td>
+                    <td><span class="num-blue" style="font-weight:700">{{ engin.heuresProductionCumulees || 0 | number:'1.0-0' }} h</span></td>
+                    <td>
+                      <span class="badge" [ngClass]="getStatBadge(engin.statut)">
+                        <span class="dot"></span> {{ engin.statut }}
+                      </span>
+                    </td>
+                    <td style="font-size:12px;color:#5C6E8A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                      <span *ngIf="engin.chantier"><b>{{ engin.chantier.codeErp || 'LOCAL' }}</b> &middot; {{ engin.chantier.nom }}</span>
+                      <span *ngIf="!engin.chantier">&mdash;</span>
+                    </td>
+                    <td>
+                      <div class="actions-cell">
+                        <button class="icon-btn" (click)="selectEngin(engin); $event.stopPropagation()" aria-label="Voir fiche"><i class="ti ti-eye"></i></button>
+                        <button class="icon-btn" aria-label="Modifier" (click)="$event.stopPropagation()"><i class="ti ti-edit"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" *ngIf="totalPages > 1">
+              <span style="font-size:12px;color:#8B9BB4">{{ filteredEngins.length }} résultat(s)</span>
+              <div class="pg-btns">
+                <button class="pg-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"><i class="ti ti-chevron-left"></i></button>
+                <span style="font-size:12px; padding: 5px 10px; color:#5C6E8A;">Page {{ currentPage }} / {{ totalPages }}</span>
+                <button class="pg-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"><i class="ti ti-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
 
-      <!-- ===== FORMULAIRE D'AJOUT ===== -->
-      <div *ngIf="showForm" class="glass-panel form-panel animate-slide-up">
-        <h2 style="margin-bottom: 16px; font-size: 1.1rem;">Nouveau Matériel</h2>
-        <form [formGroup]="enginForm" (ngSubmit)="onSubmit()" class="form-grid">
-          <div class="form-group">
-            <label>Code Matériel *</label>
-            <input formControlName="matricule" class="input-field" placeholder="Ex: E750">
+          <!-- CARDS VIEW -->
+          <div class="view" [class.active]="currentView === 'cards'">
+            <div class="card-grid">
+              <div class="mat-card" *ngFor="let engin of paginatedEngins" (click)="selectEngin(engin)">
+                <div class="mc-header">
+                  <div class="mc-icon" [ngClass]="getCatColor(engin.categorie)"><i class="ti" [ngClass]="getCatIcon(engin.categorie)"></i></div>
+                  <span class="badge" [ngClass]="getStatBadge(engin.statut)"><span class="dot"></span>{{ engin.statut }}</span>
+                </div>
+                <div style="font-size:14px;font-weight:700;color:#1B2438;margin-bottom:2px">{{ engin.codeMateriel || engin.matricule }}</div>
+                <div style="font-size:12px;color:#8B9BB4">{{ engin.marque }} · {{ engin.categorie }}</div>
+                <div class="mc-fields">
+                  <div><div class="mc-field-lbl">Modèle</div><div class="mc-field-val">{{ engin.modele || '—' }}</div></div>
+                  <div><div class="mc-field-lbl">Chantier</div><div class="mc-field-val">{{ engin.chantier ? (engin.chantier.codeErp || 'LOCAL') + ' &middot; ' + engin.chantier.nom : '&mdash;' }}</div></div>
+                  <div><div class="mc-field-lbl">Heures Prod.</div><div class="mc-field-val" style="color:#2563EB;font-weight:700">{{ engin.heuresProductionCumulees || 0 | number:'1.0-0' }} h</div></div>
+                  <div><div class="mc-field-lbl">Immat.</div><div class="mc-field-val" style="font-family:monospace">{{ engin.immatriculation || '—' }}</div></div>
+                  <div><div class="mc-field-lbl">Châssis</div><div class="mc-field-val" style="font-family:monospace;font-size:11px">{{ engin.serieChassis | slice:0:14 }}</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="pagination" style="margin-top:14px" *ngIf="totalPages > 1">
+              <span style="font-size:12px;color:#8B9BB4">{{ filteredEngins.length }} résultat(s)</span>
+              <div class="pg-btns">
+                <button class="pg-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"><i class="ti ti-chevron-left"></i></button>
+                <span style="font-size:12px; padding: 5px 10px; color:#5C6E8A;">Page {{ currentPage }} / {{ totalPages }}</span>
+                <button class="pg-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"><i class="ti ti-chevron-right"></i></button>
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Marque *</label>
-            <input formControlName="marque" class="input-field" placeholder="CAT, Doosan, Volvo...">
-          </div>
-          <div class="form-group">
-            <label>Modèle *</label>
-            <input formControlName="modele" class="input-field" placeholder="D8R, DX300...">
-          </div>
-          <div class="form-group">
-            <label>Type / Genre *</label>
-            <input formControlName="type" class="input-field" placeholder="Pelle sur chenilles...">
-          </div>
-          <div class="form-group">
-            <label>Catégorie</label>
-            <select formControlName="categorie" class="input-field">
-              <option value="Engin">Engin</option>
-              <option value="Camion">Camion</option>
-              <option value="Voiture">Voiture</option>
-              <option value="Accessoire / Organe">Accessoire / Organe</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>N° Châssis</label>
-            <input formControlName="serieChassis" class="input-field" placeholder="Série châssis">
-          </div>
-          <div class="form-group" style="display:flex; align-items: flex-end;">
-            <button type="submit" class="btn-primary" [disabled]="enginForm.invalid" style="width:100%">
-              Enregistrer
-            </button>
-          </div>
-        </form>
-      </div>
 
-      <!-- ===== DETAIL PANEL ===== -->
-      <div *ngIf="selectedEngin" class="glass-panel detail-panel animate-slide-up" id="fiche-detail">
-        <div class="detail-header">
-          <div>
-            <h2>{{ selectedEngin.codeMateriel || selectedEngin.matricule }}</h2>
-            <span class="detail-subtitle">{{ selectedEngin.codeInterne || selectedEngin.type }}</span>
-          </div>
-          <button class="btn-close" (click)="selectedEngin = null">&times;</button>
-        </div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-label">Marque</span>
-            <span class="detail-value">{{ selectedEngin.marque || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Modèle</span>
-            <span class="detail-value">{{ selectedEngin.modele || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Genre</span>
-            <span class="detail-value">{{ selectedEngin.type || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Catégorie</span>
-            <span class="detail-value">{{ selectedEngin.categorie || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Poids</span>
-            <span class="detail-value">{{ selectedEngin.poids || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">N° Châssis</span>
-            <span class="detail-value mono">{{ selectedEngin.serieChassis || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Type Moteur</span>
-            <span class="detail-value">{{ selectedEngin.typeMoteur || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">N° Moteur</span>
-            <span class="detail-value mono">{{ selectedEngin.serieMoteur || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Immatriculation</span>
-            <span class="detail-value">{{ selectedEngin.immatriculation || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Date Acquisition</span>
-            <span class="detail-value">{{ selectedEngin.dateAcquisition || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Date Mise en Circulation</span>
-            <span class="detail-value">{{ selectedEngin.dateMiseEnCirculation || '—' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Statut</span>
-            <span class="badge" [ngClass]="{'success': selectedEngin.statut === 'ACTIF'}">{{ selectedEngin.statut }}</span>
-          </div>
-        </div>
+          <!-- DETAIL OVERLAY -->
+          <div id="detail-overlay" *ngIf="showForm || selectedEngin" style="display:flex;position:fixed;inset:0;background:rgba(15,20,40,.45);z-index:100;align-items:center;justify-content:center">
+            <div style="background:#fff;border-radius:14px;width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.18)">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #E8ECF2">
+                <div>
+                  <div style="font-size:16px;font-weight:700;color:#1B2438">{{ selectedEngin ? 'Fiche Matériel' : 'Nouveau Matériel' }}</div>
+                  <div style="font-size:12px;color:#8B9BB4;margin-top:2px">{{ selectedEngin ? (selectedEngin.codeMateriel || selectedEngin.matricule) : 'Ajouter à la flotte' }}</div>
+                </div>
+                <button class="icon-btn" (click)="closeDetail()" aria-label="Fermer"><i class="ti ti-x" aria-hidden="true"></i></button>
+              </div>
+              
+              <form [formGroup]="enginForm" (ngSubmit)="onSubmit()">
+                <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  
+                  <div *ngIf="selectedEngin" style="grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:12px;background:#F8FAFC;border-radius:9px;border:1px solid #E8ECF2">
+                    <div class="mat-thumb" [ngClass]="getCatColor(selectedEngin.categorie)"><i class="ti" [ngClass]="getCatIcon(selectedEngin.categorie)"></i></div>
+                    <div>
+                      <div style="font-size:14px;font-weight:700;color:#1B2438">{{ selectedEngin.codeMateriel || selectedEngin.matricule }}</div>
+                      <div style="font-size:12px;color:#8B9BB4">{{ selectedEngin.marque }} · {{ selectedEngin.type }}</div>
+                    </div>
+                    <div style="margin-left:auto">
+                      <span class="badge" [ngClass]="getStatBadge(selectedEngin.statut)"><span class="dot"></span> {{ selectedEngin.statut }}</span>
+                    </div>
+                  </div>
 
-        <div style="margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
-          <h3 style="font-size: 1rem; color: #334155; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-             📝 Historique d'Entrée / Sortie Atelier
-          </h3>
-          <table class="data-table" style="font-size: 0.85rem;" *ngIf="historiqueEngin.length > 0">
-            <thead style="background: #f8fafc;">
-              <tr>
-                <th>ID Rép.</th>
-                <th>Type</th>
-                <th>Date Entrée</th>
-                <th>Date Sortie</th>
-                <th>Durée d'Immobilisation</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let h of historiqueEngin">
-                <td><strong>{{ h.idStr }}</strong></td>
-                <td>{{ h.type }}</td>
-                <td>{{ h.dateDebut }}</td>
-                <td>
-                   <span *ngIf="h.dateFin !== '—'">{{ h.dateFin }}</span>
-                   <span *ngIf="h.dateFin === '—'" style="color:var(--text-muted); font-style:italic;">En atelier...</span>
-                </td>
-                <td style="font-weight: 600;" [ngStyle]="{'color': h.joursArret > 7 && h.statut !== 'Clôturée' ? 'var(--danger)' : 'var(--text)'}">
-                   {{ h.joursArret > 0 ? h.joursArret + ' Jours' : 'Même jour' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div *ngIf="historiqueEngin.length === 0" style="color: #64748b; font-size: 0.85rem; font-style: italic;">
-            Aucune intervention enregistrée pour ce matériel.
+                  <div><div class="mc-field-lbl">Code Matériel (ex: C754) *</div><input formControlName="codeMateriel" class="custom-input" placeholder="Ex: C754"></div>
+                  <div><div class="mc-field-lbl">Matricule (Identifiant) *</div><input formControlName="matricule" class="custom-input"></div>
+                  <div><div class="mc-field-lbl">Marque *</div><input formControlName="marque" class="custom-input"></div>
+                  <div><div class="mc-field-lbl">Modèle *</div><input formControlName="modele" class="custom-input"></div>
+                  <div><div class="mc-field-lbl">Type / Genre *</div><input formControlName="type" class="custom-input"></div>
+                  
+                  <div><div class="mc-field-lbl">Catégorie</div>
+                    <select formControlName="categorie" class="custom-input">
+                      <option value="Engin">Engin</option>
+                      <option value="Camion">Camion</option>
+                      <option value="Voiture">Voiture</option>
+                      <option value="Accessoire / Organe">Accessoire / Organe</option>
+                    </select>
+                  </div>
+                  <div><div class="mc-field-lbl">N° Châssis</div><input formControlName="serieChassis" class="custom-input" style="font-family:monospace"></div>
+                  <div><div class="mc-field-lbl">Statut</div>
+                    <select formControlName="statut" class="custom-input">
+                      <option value="ACTIF">ACTIF</option>
+                      <option value="EN_PANNE">EN_PANNE</option>
+                      <option value="VENDU">VENDU</option>
+                      <option value="FERRAILLE">FERRAILLE</option>
+                    </select>
+                  </div>
+                  
+                  <div><div class="mc-field-lbl">Heures Production (ERP)</div>
+                    <div style="position:relative;">
+                      <input [value]="selectedEngin?.heuresProductionCumulees || 0" class="custom-input" readonly style="background:#F1F5F9; color:#2563EB; font-weight:700;">
+                      <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:700; color:#2563EB;">h</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="mc-field-lbl" style="display:flex;align-items:center;gap:4px">
+                      Prix Moyen Pondéré (Loyer J.) <i class="ti ti-info-circle" title="En cours de développement par l'expert comptable" style="font-size:12px;color:#2563EB"></i>
+                    </div>
+                    <div style="position:relative;">
+                      <input formControlName="prixMoyenPondere" class="custom-input" placeholder="Ex: 1500" type="number" style="padding-right:45px;">
+                      <span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:11px; font-weight:700; color:#8B9BB4;">MAD</span>
+                    </div>
+                  </div>
+                  
+                  <div *ngIf="selectedEngin" style="grid-column:1/-1; margin-top: 10px;">
+                    <div class="mc-field-lbl">Chantier Affecté</div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                      <select class="custom-input" [ngModel]="selectedEngin?.chantier?.idChantier" (ngModelChange)="affecterChantier(selectedEngin.idEngin, $event)" [ngModelOptions]="{standalone: true}">
+                        <option [ngValue]="null">Aucun (Au parc)</option>
+                        <option *ngFor="let c of tousChantiers" [ngValue]="c.idChantier">
+                          {{ c.codeErp ? '[' + c.codeErp + '] ' : '' }}{{ c.nom }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E8ECF2">
+                  <button type="button" (click)="closeDetail()" style="padding:8px 14px;border:1px solid #E8ECF2;background:none;border-radius:7px;font-size:13px;color:#5C6E8A;cursor:pointer">Annuler</button>
+                  <button type="submit" [disabled]="enginForm.invalid && !selectedEngin" style="display:inline-flex;align-items:center;gap:6px;background:#2563EB;color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer">
+                    <i class="ti ti-device-floppy"></i> Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- ===== TABLE ===== -->
-      <div class="glass-panel table-container">
-        <table class="data-table" id="table-parc">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Marque</th>
-              <th>Modèle / Type</th>
-              <th>Catégorie</th>
-              <th>N° Châssis</th>
-              <th>Immatriculation</th>
-              <th>Statut</th>
-              <th style="text-align:center;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let engin of paginatedEngins; trackBy: trackByMatricule"
-                [class.row-selected]="selectedEngin?.matricule === engin.matricule"
-                (click)="selectEngin(engin)">
-              <td><strong class="code-cell">{{ engin.codeMateriel || engin.matricule }}</strong></td>
-              <td>{{ engin.marque }}</td>
-              <td>
-                <span class="model-text">{{ engin.modele }}</span>
-                <span class="type-sub">{{ engin.type }}</span>
-              </td>
-              <td>
-                <span class="cat-badge" [attr.data-cat]="engin.categorie">{{ engin.categorie }}</span>
-              </td>
-              <td class="mono-cell">{{ truncate(engin.serieChassis, 18) }}</td>
-              <td>{{ engin.immatriculation || '—' }}</td>
-              <td>
-                <span class="badge" [ngClass]="{'success': engin.statut === 'ACTIF', 'danger': engin.statut !== 'ACTIF'}">
-                  {{ engin.statut }}
-                </span>
-              </td>
-              <td style="text-align:center;">
-                <button class="btn-icon" (click)="selectEngin(engin); $event.stopPropagation()" title="Voir la fiche">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                </button>
-              </td>
-            </tr>
-            <tr *ngIf="filteredEngins.length === 0">
-              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                Aucun matériel ne correspond à vos critères.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <div class="pagination" *ngIf="totalPages > 1">
-          <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
-            ‹ Précédent
-          </button>
-          <span class="page-info">Page {{ currentPage }} / {{ totalPages }}</span>
-          <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
-            Suivant ›
-          </button>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    .parc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .parc-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
-    .header-actions { display: flex; gap: 10px; }
-
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .kpi-mini {
-      display: flex; align-items: center; gap: 14px;
-      padding: 16px 20px; background: var(--bg-card, #fff); border-radius: 12px;
-      border: 1px solid var(--border, #e5e7eb);
-      transition: all 0.2s ease;
-    }
-    .kpi-mini:hover { border-color: var(--accent, #0066cc); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.06); }
-    .kpi-mini-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-    .kpi-mini-value { font-size: 1.35rem; font-weight: 700; color: var(--text-primary); }
-    .kpi-mini-label { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
-
-    .filter-bar { display: flex; flex-direction: column; gap: 14px; padding: 16px 20px; margin-bottom: 20px; }
-    .search-box { display: flex; align-items: center; gap: 10px; }
-    .search-input {
-      flex: 1; border: none; outline: none; background: transparent;
-      font-size: .95rem; color: var(--text-primary); padding: 8px 0;
-    }
-    .search-input::placeholder { color: var(--text-muted); }
-    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      padding: 6px 16px; border-radius: 20px;
-      border: 1px solid var(--border, #e5e7eb); background: transparent;
-      font-size: .82rem; color: var(--text-secondary); cursor: pointer;
-      transition: all .2s ease; font-weight: 500;
-    }
-    .chip:hover { border-color: var(--accent); color: var(--accent); }
-    .chip.active { background: var(--accent, #0066cc); color: #fff; border-color: var(--accent); }
-
-    .form-panel { margin-bottom: 20px; border-left: 3px solid var(--accent); }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: .78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
-
-    .detail-panel { margin-bottom: 20px; border-left: 3px solid var(--accent); }
-    .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .detail-header h2 { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    .detail-subtitle { font-size: .85rem; color: var(--text-muted); }
-    .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0 6px; line-height: 1; }
-    .btn-close:hover { color: var(--text-primary); }
-    .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-    .detail-item { display: flex; flex-direction: column; gap: 4px; }
-    .detail-label { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); }
-    .detail-value { font-size: .95rem; color: var(--text-primary); font-weight: 500; }
-    .detail-value.mono { font-family: 'JetBrains Mono', monospace; font-size: .85rem; letter-spacing: .3px; }
-
-    .table-container { padding: 0; overflow: hidden; }
-    .data-table { margin: 0; border-radius: 0; }
-    .data-table th { position: sticky; top: 0; z-index: 1; }
-
-    .code-cell { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: .88rem; }
-    .enterprise-container { padding: 32px; background-color: #f8fafc; min-height: 100vh; font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #0f172a; }
-    
-    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
-    .page-title { font-size: 1.5rem; font-weight: 600; color: #0f172a; margin: 0 0 4px 0; }
-    .page-subtitle { font-size: 0.875rem; color: #64748b; margin: 0; }
-    
-    .btn-primary { display: flex; align-items: center; gap: 8px; background-color: #2563eb; color: white; border: none; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; transition: background-color 0.15s; }
-    .btn-primary:hover { background-color: #1d4ed8; }
-    .btn-secondary { background-color: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 8px 16px; font-size: 0.875rem; font-weight: 500; border-radius: 6px; cursor: pointer; }
-    
-    .filters-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .search-group { position: relative; width: 320px; }
-    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-    .search-input { width: 100%; padding: 10px 12px 10px 36px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; outline: none; }
-    
-    .categories-tabs { display: flex; gap: 4px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
-    .tab-btn { background: transparent; border: none; padding: 6px 16px; font-size: 0.8125rem; font-weight: 500; color: #475569; border-radius: 4px; cursor: pointer; }
-    .tab-btn.active { background: white; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-
-    .main-layout { display: grid; grid-template-columns: 1fr; gap: 24px; transition: all 0.3s ease; }
-    .main-layout.with-detail { grid-template-columns: 2fr 1fr; }
-
-    .table-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .enterprise-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .enterprise-table th { background-color: #f8fafc; padding: 12px 16px; font-size: 0.75rem; font-weight: 600; color: #475569; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
-    .enterprise-table td { padding: 12px 16px; font-size: 0.875rem; border-bottom: 1px solid #f1f5f9; }
-    .enterprise-table tbody tr:hover { background-color: #f8fafc; }
-    .enterprise-table tbody tr.row-selected { background-color: #eff6ff; }
-    
-    .ref-text { font-family: monospace; color: #64748b; font-size: 0.8125rem; font-weight: 500; }
-    .engin-name { font-weight: 600; color: #0f172a; }
-    .empty-state { text-align: center; color: #94a3b8; padding: 32px !important; }
-
-    .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 12px 16px; background: white; border-top: 1px solid #e2e8f0; }
-    .btn-page { background: white; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; font-size: 0.8125rem; cursor: pointer; color: #334155; }
-    .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
-    
-    .detail-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-    .detail-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    .detail-body { padding: 20px; }
-    .detail-title-group { margin-bottom: 24px; }
-    .detail-name { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
-    .detail-section { margin-bottom: 24px; }
-    .detail-section h4 { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
-    .info-label { font-size: 0.75rem; color: #64748b; }
-    .info-value { font-size: 0.875rem; font-weight: 500; }
-    
-    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-    .badge-success { background-color: #d1fae5; color: #065f46; }
-    .badge-danger { background-color: #fee2e2; color: #991b1b; }
-    .badge-warning { background-color: #fef3c7; color: #92400e; }
-    .badge-info { background-color: #e0e7ff; color: #3730a3; }
-    .badge-primary { background-color: #dbeafe; color: #1e40af; }
-
-    .modal-backdrop { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; padding-top: 5vh; z-index: 50; }
-    .modal-container { background: white; border-radius: 8px; width: 100%; max-width: 700px; display: flex; flex-direction: column; max-height: 90vh; }
-    .modal-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 20px; overflow-y: auto; }
-    .modal-footer { padding: 16px 20px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 12px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-control { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+    *{box-sizing:border-box;}
+    .shell{display:flex;min-height:100%;}
+    .main{flex:1;background:#F4F6FA;overflow:hidden;border-radius:12px;border:1px solid #E8ECF2;}
+    .content{padding:20px;}
+    .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+    .pt{font-size:22px;font-weight:700;color:#1B2438}
+    .ps{font-size:13px;color:#8B9BB4;margin-top:3px}
+    .btn-add{display:inline-flex;align-items:center;gap:7px;background:#2563EB;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:0.2s;}
+    .btn-add:hover{background:#1d4ed8;}
+    .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+    .kpi{background:#fff;border:1px solid #E8ECF2;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .15s}
+    .kpi:hover{border-color:#2563EB}
+    .kpi.active{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    .kpi-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .ki-all{background:#EBF1FE;color:#2563EB}
+    .ki-eng{background:#FEF3EB;color:#EA7C1B}
+    .ki-cam{background:#EBFAF3;color:#16A34A}
+    .ki-veh{background:#F0EBFE;color:#7C3AED}
+    .ki-acc{background:#FEF9EB;color:#CA8A04}
+    .ki-out{background:#FEEBEB;color:#E24B4A}
+    .kpi-val{font-size:20px;font-weight:700;color:#1B2438;line-height:1}
+    .kpi-lbl{font-size:11px;color:#8B9BB4;margin-top:2px;white-space:nowrap}
+    .toolbar{background:#fff;border:1px solid #E8ECF2;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+    .search-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+    .sw{flex:1;position:relative}
+    .sw i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#8B9BB4;font-size:16px;pointer-events:none}
+    .sw input{padding:8px 10px 8px 36px;width:100%;border:1px solid #E8ECF2;border-radius:8px;font-size:13px;color:#1B2438;background:#F8FAFC;outline:none;transition:0.2s;}
+    .sw input:focus{border-color:#2563EB;background:#fff}
+    .vbtns{display:flex;gap:3px;background:#F4F6FA;border-radius:7px;padding:3px}
+    .vbtn{padding:5px 9px;border:none;background:none;border-radius:5px;cursor:pointer;color:#8B9BB4;font-size:14px;display:flex;align-items:center;transition:0.2s;}
+    .vbtn.active{background:#fff;color:#2563EB;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .pills-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .pgrp{display:flex;align-items:center;gap:5px}
+    .plbl{font-size:11px;color:#8B9BB4;font-weight:500;margin-right:2px}
+    .pill{padding:5px 12px;border-radius:99px;border:1px solid #E8ECF2;background:#fff;font-size:12px;font-weight:500;color:#5C6E8A;cursor:pointer;transition:0.2s;}
+    .pill.active{background:#2563EB;color:#fff;border-color:#2563EB}
+    .pill:hover:not(.active){background:#F4F6FA}
+    .divider{width:1px;height:20px;background:#E8ECF2}
+    .tbl-wrap{background:#fff;border:1px solid #E8ECF2;border-radius:10px;overflow:hidden}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    th{text-align:left;padding:10px 13px;font-size:10px;font-weight:700;color:#8B9BB4;text-transform:uppercase;letter-spacing:.07em;background:#F8FAFC;border-bottom:1px solid #E8ECF2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    td{padding:0 13px;font-size:13px;color:#1B2438;border-bottom:1px solid #F0F2F6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;height:48px;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tbody tr:hover{background:#F8FAFC}
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600}
+    .b-actif{background:#EBFAF3;color:#15803D;border:1px solid #BBF7D0}
+    .b-panne{background:#FEEBEB;color:#C41D1D;border:1px solid #FCA5A5}
+    .b-vendu{background:#F1EFE8;color:#5F5E5A;border:1px solid #D3D1C7}
+    .b-ferr{background:#FEF3EB;color:#C05621;border:1px solid #FED7AA}
+    .dot{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+    .mat-thumb{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .mt-eng{background:#FEF3EB;color:#EA7C1B}
+    .mt-cam{background:#EBFAF3;color:#16A34A}
+    .mt-veh{background:#EBF1FE;color:#2563EB}
+    .mt-acc{background:#F0EBFE;color:#7C3AED}
+    .mat-cell{display:flex;align-items:center;gap:9px}
+    .mat-name{font-size:13px;font-weight:600;color:#1B2438}
+    .mat-sub{font-size:11px;color:#8B9BB4}
+    .code-tag{font-family:monospace;font-size:11px;background:#F0F2F6;color:#5C6E8A;padding:2px 7px;border-radius:4px}
+    .icon-btn{background:none;border:1px solid #E8ECF2;border-radius:6px;padding:5px 7px;cursor:pointer;color:#5C6E8A;display:inline-flex;align-items:center;font-size:15px;transition:0.2s;}
+    .icon-btn:hover{background:#F4F6FA;color:#1B2438}
+    .actions-cell{display:flex;gap:5px;align-items:center}
+    .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .mat-card{background:#fff;border:1px solid #E8ECF2;border-radius:10px;padding:16px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+    .mat-card:hover{border-color:#2563EB;box-shadow:0 2px 8px rgba(37,99,235,.1)}
+    .mc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .mc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+    .mc-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0F2F6}
+    .mc-field-lbl{font-size:10px;font-weight:600;color:#8B9BB4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+    .mc-field-val{font-size:12px;color:#1B2438;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pagination{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:12px;color:#8B9BB4}
+    .pg-btns{display:flex;gap:4px}
+    .pg-btn{padding:5px 10px;border:1px solid #E8ECF2;border-radius:6px;background:#fff;font-size:12px;color:#5C6E8A;cursor:pointer}
+    .pg-btn:disabled{opacity:0.5;cursor:not-allowed;}
+    .view{display:none}.view.active{display:block}
+    .custom-input{border:1px solid #E8ECF2;border-radius:7px;padding:7px 10px;font-size:13px;width:100%;color:#1B2438;background:#FAFBFC;outline:none;}
+    .custom-input:focus{border-color:#2563EB;background:#fff;}
   `]
 })
 export class EnginsComponent implements OnInit {
   listeEngins: any[] = [];
+  actuelsCount: number = 0;
   filteredEngins: any[] = [];
   paginatedEngins: any[] = [];
   searchTerm = '';
@@ -394,32 +352,92 @@ export class EnginsComponent implements OnInit {
   enginForm: FormGroup;
   categories = ['Tous', 'Engin', 'Camion', 'Voiture', 'Accessoire / Organe'];
   kpis: any[] = [];
+  // New status filter options
+  statusOptions = ['Tous', 'ACTIF', 'EN_PANNE', 'VENDU', 'FERRAILLE'];
+  selectedStatus = 'Tous';
 
   // Interventions for History
   toutesInterventions: any[] = [];
   historiqueEngin: any[] = [];
+  tousChantiers: any[] = [];
 
   // Pagination
   currentPage = 1;
   pageSize = 25;
   totalPages = 1;
 
+  // New View Options
+  currentView = 'table';
+
+  getKpiCat(type: string): string {
+    const map: any = { 'total': 'Tous', 'engin': 'Engin', 'camion': 'Camion', 'voiture': 'Voiture', 'accessoire': 'Accessoire / Organe', 'vendu': 'Vendu' };
+    return map[type];
+  }
+
+  getCatIcon(cat: string): string {
+    const cats: any = { 'Engin': 'ti-crane', 'Camion': 'ti-truck', 'Voiture': 'ti-car', 'Accessoire / Organe': 'ti-settings', 'Vendu': 'ti-x' };
+    return cats[cat] || 'ti-package';
+  }
+
+  getCatColor(cat: string): string {
+    const cats: any = { 'Engin': 'mt-eng', 'Camion': 'mt-cam', 'Voiture': 'mt-veh', 'Accessoire / Organe': 'mt-acc', 'Vendu': 'mt-acc' };
+    return cats[cat] || 'mt-acc';
+  }
+
+  getStatBadge(stat: string): string {
+    const stats: any = { 'ACTIF': 'b-actif', 'EN_PANNE': 'b-panne', 'VENDU': 'b-vendu', 'FERRAILLE': 'b-ferr' };
+    return stats[stat] || 'b-actif';
+  }
+
+  closeDetail(): void {
+    this.selectedEngin = null;
+    this.showForm = false;
+  }
+
   constructor(private fb: FormBuilder, private api: ApiService) {
     this.enginForm = this.fb.group({
       matricule: ['', Validators.required],
+      codeMateriel: ['', Validators.required],
       marque: ['', Validators.required],
       modele: ['', Validators.required],
       type: ['', Validators.required],
       categorie: ['Engin'],
       serieChassis: [''],
       statut: ['ACTIF'],
-      compteurActuel: [0]
+      compteurActuel: [0],
+      prixMoyenPondere: [''] // Nouveau champ
     });
   }
 
   ngOnInit(): void {
     this.chargerEngins();
     this.chargerInterventions();
+    this.chargerChantiers();
+  }
+
+  chargerChantiers(): void {
+    this.api.getChantiers().subscribe({
+      next: (data) => {
+        this.tousChantiers = data.filter((c: any) => c.statut === 'ACTIF');
+      }
+    });
+  }
+
+  affecterChantier(enginId: number, chantierId: number): void {
+    const cid = chantierId ? chantierId : null;
+    this.api.affecterEnginAuChantier(enginId, cid).subscribe({
+      next: (updatedEngin) => {
+        if (this.selectedEngin && this.selectedEngin.idEngin === updatedEngin.idEngin) {
+          this.selectedEngin.chantier = updatedEngin.chantier;
+        }
+        // Update in the list
+        const idx = this.listeEngins.findIndex(e => e.idEngin === updatedEngin.idEngin);
+        if (idx !== -1) {
+          this.listeEngins[idx] = updatedEngin;
+          this.updateEnginStatuses();
+        }
+      }
+    });
   }
 
   chargerInterventions(): void {
@@ -452,6 +470,7 @@ export class EnginsComponent implements OnInit {
             joursArret: joursArret
           };
         });
+        this.updateEnginStatuses();
       }
     });
   }
@@ -477,35 +496,118 @@ export class EnginsComponent implements OnInit {
 
           return e;
         });
-        this.buildKpis();
-        this.applyFilters();
+        
+        this.updateEnginStatuses();
       },
       error: (err) => {
         console.error('API Error, données mock activées', err);
         this.listeEngins = [];
+        this.actuelsCount = 0;
         this.buildKpis();
         this.applyFilters();
       }
     });
   }
 
+  updateEnginStatuses(): void {
+    if (!this.listeEngins || this.listeEngins.length === 0) return;
+
+    this.listeEngins.forEach(e => {
+      if (!this.isVendu(e)) {
+        // Un matériel est en panne s'il a une intervention qui n'est pas clôturée
+        const enPanne = this.toutesInterventions.some(i => 
+          i.idEngin === e.idEngin && 
+          i.statut !== 'Clôturée' && 
+          i.statut !== 'CLOTUREE' &&
+          i.statut !== 'Terminée' &&
+          i.statut !== 'TERMINEE'
+        );
+        
+        // Si la base de données disait déjà EN_PANNE on le garde, sinon on le met à jour
+        if (enPanne) {
+          e.statut = 'EN_PANNE';
+        } else if (e.statut === 'EN_PANNE') {
+          // Si l'intervention est clôturée mais qu'il était marqué EN_PANNE, il redevient ACTIF
+          e.statut = 'ACTIF';
+        }
+      }
+    });
+
+    const actuels = this.listeEngins.filter(e => !this.isVendu(e));
+    this.actuelsCount = actuels.length;
+
+    this.buildKpis();
+    this.applyFilters();
+  }
+
   buildKpis(): void {
-    const total = this.listeEngins.length;
-    const engins = this.listeEngins.filter(e => e.categorie === 'Engin').length;
-    const camions = this.listeEngins.filter(e => e.categorie === 'Camion').length;
-    const voitures = this.listeEngins.filter(e => e.categorie === 'Voiture').length;
-    const accessoires = this.listeEngins.filter(e => e.categorie === 'Accessoire / Organe').length;
+    const vendus = this.listeEngins.filter(e => this.isVendu(e)).length;
+    const actuels = this.listeEngins.filter(e => !this.isVendu(e));
+    
+    const total = actuels.length;
+    const engins = actuels.filter(e => e.categorie === 'Engin').length;
+    const camions = actuels.filter(e => e.categorie === 'Camion').length;
+    const voitures = actuels.filter(e => e.categorie === 'Voiture').length;
+    const accessoires = actuels.filter(e => e.categorie === 'Accessoire / Organe').length;
+    
     this.kpis = [
-      { label: 'Total Matériels', value: total, type: 'total', bg: 'linear-gradient(135deg, #dbeafe, #eff6ff)' },
+      { label: 'Parc Actuel', value: total, type: 'total', bg: 'linear-gradient(135deg, #dbeafe, #eff6ff)' },
       { label: 'Engins', value: engins, type: 'engin', bg: 'linear-gradient(135deg, #f3e8ff, #faf5ff)' },
       { label: 'Camions', value: camions, type: 'camion', bg: 'linear-gradient(135deg, #fef3c7, #fffbeb)' },
       { label: 'Voitures & Véh.', value: voitures, type: 'voiture', bg: 'linear-gradient(135deg, #d1fae5, #ecfdf5)' },
-      { label: 'Organes & Accessoires', value: accessoires, type: 'accessoire', bg: 'linear-gradient(135deg, #ffedd5, #fff7ed)' },
+      { label: 'Organes & Acc.', value: accessoires, type: 'accessoire', bg: 'linear-gradient(135deg, #ffedd5, #fff7ed)' },
+      { label: 'Vendus / Sortis', value: vendus, type: 'vendu', bg: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)' }
     ];
+  }
+
+  isVendu(e: any): boolean {
+    const stat = (e.statut || '').toString().toUpperCase();
+    const cm = (e.codeMateriel || e.matricule || '').toString().toUpperCase();
+    return stat === 'VENDU' || cm.includes('VENDU') || stat === 'FERRAILLE';
+  }
+
+  onKpiClick(type: string): void {
+    switch(type) {
+      case 'total':
+        this.selectedCategory = 'Tous';
+        this.selectedStatus = 'Tous';
+        break;
+      case 'engin':
+        this.selectedCategory = 'Engin';
+        this.selectedStatus = 'Tous';
+        break;
+      case 'camion':
+        this.selectedCategory = 'Camion';
+        this.selectedStatus = 'Tous';
+        break;
+      case 'voiture':
+        this.selectedCategory = 'Voiture';
+        this.selectedStatus = 'Tous';
+        break;
+      case 'accessoire':
+        this.selectedCategory = 'Accessoire / Organe';
+        this.selectedStatus = 'Tous';
+        break;
+      case 'vendu':
+        this.selectedCategory = 'Tous';
+        this.selectedStatus = 'VENDU';
+        break;
+    }
+    this.currentPage = 1;
+    this.applyFilters();
   }
 
   selectCategory(cat: string): void {
     this.selectedCategory = cat;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  // New method to handle status selection and reset category filter
+  selectStatus(stat: string): void {
+    this.selectedStatus = stat;
+    // Reset category to 'Tous' to avoid combined filters unintentionally hiding results
+    this.selectedCategory = 'Tous';
     this.currentPage = 1;
     this.applyFilters();
   }
@@ -518,9 +620,28 @@ export class EnginsComponent implements OnInit {
       result = result.filter(e => e.categorie === this.selectedCategory);
     }
 
-    // Search filter
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
+    // Si l'utilisateur fait une recherche, on ne cache RIEN — la recherche est prioritaire
+    const hasSearch = this.searchTerm.trim().length > 0;
+
+    // Hide VENDUS by default ONLY when no search term is active
+    if (this.selectedStatus === 'Tous' && !hasSearch) {
+      result = result.filter(e => !this.isVendu(e));
+    }
+
+    // Status filter (case‑insensitive, safe for missing values)
+    if (this.selectedStatus !== 'Tous') {
+      const desired = this.selectedStatus.toUpperCase();
+      result = result.filter(e => {
+        const stat = (e.statut || '').toString().toUpperCase();
+        if (stat === desired) return true;
+        if (desired === 'VENDU') return this.isVendu(e);
+        return false;
+      });
+    }
+
+    // Search filter — cherche dans tous les champs identifiants
+    if (hasSearch) {
+      const term = this.searchTerm.trim().toLowerCase();
       result = result.filter(e =>
         (e.matricule || '').toLowerCase().includes(term) ||
         (e.codeMateriel || '').toLowerCase().includes(term) ||
@@ -529,7 +650,8 @@ export class EnginsComponent implements OnInit {
         (e.type || '').toLowerCase().includes(term) ||
         (e.serieChassis || '').toLowerCase().includes(term) ||
         (e.immatriculation || '').toLowerCase().includes(term) ||
-        (e.codeInterne || '').toLowerCase().includes(term)
+        (e.codeInterne || '').toLowerCase().includes(term) ||
+        (e.categorie || '').toLowerCase().includes(term)
       );
     }
 
@@ -555,6 +677,18 @@ export class EnginsComponent implements OnInit {
       this.selectedEngin = null;
     } else {
       this.selectedEngin = engin;
+      this.enginForm.patchValue({
+        matricule: engin.matricule,
+        codeMateriel: engin.codeMateriel,
+        marque: engin.marque,
+        modele: engin.modele,
+        type: engin.type,
+        categorie: engin.categorie || 'Engin',
+        serieChassis: engin.serieChassis,
+        statut: engin.statut || 'ACTIF',
+        compteurActuel: engin.compteurActuel || 0,
+        prixMoyenPondere: engin.prixMoyenPondere || ''
+      });
       // Filtrer l'historique
       this.historiqueEngin = this.toutesInterventions.filter(i => i.idEngin === engin.idEngin);
     }
@@ -563,27 +697,55 @@ export class EnginsComponent implements OnInit {
   toggleForm(): void {
     this.showForm = !this.showForm;
     this.selectedEngin = null;
+    this.enginForm.reset({ statut: 'ACTIF', compteurActuel: 0, categorie: 'Engin', prixMoyenPondere: '', codeMateriel: '' });
   }
 
   onSubmit(): void {
     if (this.enginForm.valid) {
-      this.api.createMateriel(this.enginForm.value).subscribe({
-        next: (saved) => {
-          this.listeEngins.unshift(saved);
-          this.buildKpis();
-          this.applyFilters();
-          this.enginForm.reset({ statut: 'ACTIF', compteurActuel: 0, categorie: 'Engin' });
-          this.showForm = false;
-        },
-        error: () => {
-          // Fallback local
-          this.listeEngins.unshift({ ...this.enginForm.value });
-          this.buildKpis();
-          this.applyFilters();
-          this.enginForm.reset({ statut: 'ACTIF', compteurActuel: 0, categorie: 'Engin' });
-          this.showForm = false;
-        }
-      });
+      if (this.selectedEngin) {
+        // Mode Modification
+        this.api.updateMateriel(this.selectedEngin.idEngin, this.enginForm.value).subscribe({
+          next: (updated) => {
+            const idx = this.listeEngins.findIndex(e => e.idEngin === updated.idEngin);
+            if (idx !== -1) {
+              this.listeEngins[idx] = updated;
+            }
+            this.buildKpis();
+            this.applyFilters();
+            this.selectedEngin = null;
+            this.showForm = false;
+          },
+          error: () => {
+            // Fallback en cas d'erreur API
+            const idx = this.listeEngins.findIndex(e => e.idEngin === this.selectedEngin.idEngin);
+            if (idx !== -1) {
+              this.listeEngins[idx] = { ...this.listeEngins[idx], ...this.enginForm.value };
+            }
+            this.buildKpis();
+            this.applyFilters();
+            this.selectedEngin = null;
+            this.showForm = false;
+          }
+        });
+      } else {
+        // Mode Création
+        this.api.createMateriel(this.enginForm.value).subscribe({
+          next: (saved) => {
+            this.listeEngins.unshift(saved);
+            this.buildKpis();
+            this.applyFilters();
+            this.enginForm.reset({ statut: 'ACTIF', compteurActuel: 0, categorie: 'Engin', prixMoyenPondere: '', codeMateriel: '' });
+            this.showForm = false;
+          },
+          error: () => {
+            this.listeEngins.unshift({ ...this.enginForm.value, idEngin: Date.now() });
+            this.buildKpis();
+            this.applyFilters();
+            this.enginForm.reset({ statut: 'ACTIF', compteurActuel: 0, categorie: 'Engin', prixMoyenPondere: '', codeMateriel: '' });
+            this.showForm = false;
+          }
+        });
+      }
     }
   }
 

@@ -38,7 +38,7 @@ public class InterventionService {
             intervention.setDateDebut(LocalDateTime.now());
         }
         if (intervention.getStatut() == null) {
-            intervention.setStatut("Programmée");
+            intervention.setStatut("PROGRAMMEE");
         }
         
         Intervention savedIntervention = interventionRepository.save(intervention);
@@ -89,9 +89,15 @@ public class InterventionService {
             Utilisateur tech = new Utilisateur();
             tech.setIdUser(technicienId);
             intervention.setTechnicien(tech);
-            if ("Programmée".equals(intervention.getStatut())) {
-                intervention.setStatut("En Cours");
+            
+            String currentStatut = intervention.getStatut();
+            if (currentStatut == null || 
+                currentStatut.equalsIgnoreCase("Programmée") || 
+                currentStatut.equalsIgnoreCase("PROGRAMMEE") || 
+                currentStatut.equalsIgnoreCase("EN_ATTENTE")) {
+                intervention.setStatut("EN_COURS");
             }
+            
             return interventionRepository.save(intervention);
         }).orElseThrow(() -> new RuntimeException("Intervention introuvable avec l'ID: " + id));
     }

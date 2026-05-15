@@ -26,18 +26,25 @@ public class Intervention {
     @NotFound(action = NotFoundAction.IGNORE)
     private Engin engin;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_anomalie")
     @NotFound(action = NotFoundAction.IGNORE)
     private Anomalie anomalie;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_plan_intervention")
+    @JsonIgnoreProperties("interventions")
+    private PlanIntervention planIntervention;
+
     private String enginDeclare;
 
-    private String type; // ex: PPREVENTIVE, CORRECTIVE
+    private String type; // ex: PREVENTIVE, CORRECTIVE
+    private String metier; // MECANIQUE, ELECTRICITE, PLOMBERIE, PNEUMATIQUE...
+    private String priorite; // BASSE, MOYENNE, HAUTE, CRITIQUE
 
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
-    private String statut; // PROGRAMMEE, EN_ATTENTE_PIECES, CLOTUREE
+    private String statut; // PROGRAMMEE, EN_COURS, EN_ATTENTE_PIECES, CLOTUREE
     private Double dureeReelle;
     private Double cout;
 

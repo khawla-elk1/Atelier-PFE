@@ -46,6 +46,14 @@ public class EnginService {
             existing.setUniteCompteur(updated.getUniteCompteur());
             existing.setCompteurActuel(updated.getCompteurActuel());
             existing.setStatut(updated.getStatut());
+            
+            // Maintenance prédictive & Facturation
+            existing.setFrequenceVidange(updated.getFrequenceVidange());
+            existing.setDernierCompteurVidange(updated.getDernierCompteurVidange());
+            existing.setSeuilAlerteVidange(updated.getSeuilAlerteVidange());
+            existing.setConsommationGasoilNorme(updated.getConsommationGasoilNorme());
+            existing.setPrixMoyenPondere(updated.getPrixMoyenPondere());
+
             return enginRepository.save(existing);
         });
     }

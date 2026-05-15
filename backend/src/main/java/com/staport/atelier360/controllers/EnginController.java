@@ -13,6 +13,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/engins")
 @CrossOrigin(origins = "*")
+@SuppressWarnings("null")
 public class EnginController {
 
     @Autowired

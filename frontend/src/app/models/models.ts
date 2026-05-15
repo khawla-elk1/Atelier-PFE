@@ -17,7 +17,19 @@ export interface Engin {
   uniteCompteur?: string;
   compteurActuel?: number;
   statut: string;
+  chantier?: Chantier;
 }
+
+export interface Chantier {
+  idChantier?: number;
+  nom?: string;
+  codeErp?: string;
+  designationErp?: string;
+  statut?: string;
+  dateDebut?: string;
+  dateFin?: string;
+}
+
 
 export interface Intervention {
   idIntervention?: number;

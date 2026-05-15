@@ -1,0 +1,242 @@
+:host {
+  --primary: #1e3a5f;
+  --accent: #e67e22;
+  --surface: #ffffff;
+  --text: #2c3e50;
+  --text-muted: #7f8c8d;
+}
+
+.login-content {
+  --background: #0f1e35;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background blobs */
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: float 8s ease-in-out infinite;
+}
+
+.blob-1 {
+  width: 350px; height: 350px;
+  background: #2980b9;
+  top: -100px; left: -100px;
+  animation-delay: 0s;
+}
+
+.blob-2 {
+  width: 280px; height: 280px;
+  background: #e67e22;
+  bottom: 100px; right: -80px;
+  animation-delay: 3s;
+}
+
+.blob-3 {
+  width: 200px; height: 200px;
+  background: #27ae60;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: 5s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+.login-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 40px 24px;
+}
+
+/* Header */
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo-circle {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, #2980b9, #1e3a5f);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 30px rgba(41, 128, 185, 0.5);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 8px 30px rgba(41, 128, 185, 0.5); }
+  50% { box-shadow: 0 8px 50px rgba(41, 128, 185, 0.8); }
+}
+
+.logo-icon {
+  font-size: 36px;
+  color: #fff;
+}
+
+.app-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.accent {
+  color: #e67e22;
+}
+
+.app-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Card */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 24px;
+  padding: 28px 24px;
+}
+
+.card-header-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+  ion-icon { font-size: 15px; color: #27ae60; }
+}
+
+/* Input Groups */
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:focus-within {
+    border-color: rgba(41, 128, 185, 0.6);
+    background: rgba(41, 128, 185, 0.08);
+  }
+}
+
+.input-icon {
+  ion-icon {
+    font-size: 20px;
+    color: rgba(255,255,255,0.4);
+  }
+}
+
+.input-field {
+  flex: 1;
+}
+
+.input-label {
+  display: block;
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.custom-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #fff;
+  font-family: inherit;
+
+  &::placeholder {
+    color: rgba(255,255,255,0.25);
+  }
+}
+
+/* Error */
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #e74c3c;
+  font-size: 13px;
+  margin-bottom: 14px;
+  ion-icon { font-size: 16px; }
+}
+
+/* Button */
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #2980b9, #1a5276);
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  margin-top: 6px;
+  box-shadow: 0 4px 20px rgba(41, 128, 185, 0.4);
+
+  ion-icon { font-size: 20px; }
+
+  &:active { transform: scale(0.97); }
+  &.loading { opacity: 0.7; cursor: not-allowed; }
+}
+
+.hint-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 14px;
+  ion-icon { font-size: 14px; }
+}
+
+.version-text {
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  margin-top: 24px;
+}

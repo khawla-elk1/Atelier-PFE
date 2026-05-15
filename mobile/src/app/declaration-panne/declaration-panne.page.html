@@ -1,0 +1,328 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-toolbar">
+    <div class="toolbar-content">
+      <div class="toolbar-left">
+        <div class="toolbar-logo">
+          <ion-icon name="construct"></ion-icon>
+        </div>
+        <div>
+          <p class="toolbar-title">Demande d'intervention</p>
+          <p class="toolbar-sub">Stapro 360 — STAPORT 2026/2027</p>
+        </div>
+      </div>
+      <div class="user-badge" style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>{{ userName }}</span>
+        </div>
+        <ion-button fill="clear" color="danger" size="small" (click)="logout()" style="margin: 0;">
+          <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="form-content">
+
+  <!-- Progress Bar -->
+  <div class="progress-section">
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" [style.width]="getProgress() + '%'"></div>
+    </div>
+    <span class="progress-label">{{ getProgress() }}% — {{ getFilledCount() }}/{{ getTotalFields() }} champs</span>
+  </div>
+
+  <div class="form-container">
+
+    <!-- ═══ SECTION 1 : LOCALISATION ═══ -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon orange">
+          <ion-icon name="location"></ion-icon>
+        </div>
+        <div>
+          <h3 class="section-title">Localisation</h3>
+          <p class="section-sub">Chantier et engin concerné</p>
+        </div>
+        <div class="section-badge">3 champs</div>
+      </div>
+
+      <!-- Chantier (Saisie manuelle) -->
+      <div class="field-group">
+        <label class="field-label">
+          <ion-icon name="business-outline"></ion-icon>
+          Code Chantier <span class="required">*</span>
+        </label>
+        <div class="input-wrapper" [class.filled]="anomalie.chantierDeclare">
+          <input class="custom-input" type="text" [(ngModel)]="anomalie.chantierDeclare"
+            placeholder="Ex: c756, LGV Nord..." (input)="onChantierChange()" />
+          <span class="filled-check" *ngIf="anomalie.chantierDeclare">✓</span>
+        </div>
+        <p class="field-help">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Saisissez le code ou le nom du chantier manuellement.
+        </p>
+      </div>
+
+      <!-- Engin (Recherche Intelligente) -->
+      <div class="field-group">
+        <label class="field-label">
+          <ion-icon name="search-outline"></ion-icon>
+          Rechercher l'engin <span class="required">*</span>
+        </label>
+
+        <!-- Input de recherche -->
+        <div class="search-container" *ngIf="!selectedEnginName">
+          <div class="input-wrapper search-mode">
+            <ion-icon name="search" class="search-prefix"></ion-icon>
+            <input class="custom-input search-input" type="text" [(ngModel)]="searchTerm" (input)="filterEngins()"
+              placeholder="Tapez le matricule ou le modèle..." />
+            <ion-spinner name="dots" class="search-spinner"
+              *ngIf="searchTerm.length >= 2 && enginsFiltres.length === 0"></ion-spinner>
+          </div>
+
+          <!-- Résultats de recherche -->
+          <div class="search-results" *ngIf="showEnginResults && enginsFiltres.length > 0">
+            <div class="result-item" *ngFor="let e of enginsFiltres" (click)="selectEngin(e)">
+              <div class="result-icon">
+                <ion-icon name="construct"></ion-icon>
+              </div>
+              <div class="result-info">
+                <p class="result-matricule">{{ e.matricule }}</p>
+                <p class="result-details">{{ e.modele }} • {{ e.type }}</p>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="result-arrow"></ion-icon>
+            </div>
+          </div>
+
+          <div class="no-results-hint" *ngIf="searchTerm.length >= 2 && enginsFiltres.length === 0">
+            <ion-icon name="help-circle-outline"></ion-icon>
+            <span>Aucun engin trouvé. Vérifiez l'orthographe.</span>
+          </div>
+        </div>
+
+        <!-- Engin Sélectionné (Mode Professionnel) -->
+        <div class="selected-engin-card" *ngIf="selectedEnginName">
+          <div class="selected-info">
+            <div class="selected-icon">
+              <ion-icon name="checkmark-circle"></ion-icon>
+            </div>
+            <div>
+              <p class="selected-label">Engin sélectionné</p>
+              <p class="selected-value">{{ selectedEnginName }}</p>
+            </div>
+          </div>
+          <button class="clear-selection" (click)="clearEnginSelection()">
+            <ion-icon name="close-circle"></ion-icon>
+            Modifier
+          </button>
+        </div>
+      </div>
+
+      <!-- Engin Déclaré (code manuel) -->
+      <div class="field-group">
+        <label class="field-label">
+          <ion-icon name="barcode-outline"></ion-icon>
+          Code Matériel / Désignation de l'Engin <span class="required">*</span>
+        </label>
+        <div class="input-wrapper" [class.filled]="anomalie.enginDeclare">
+          <input class="custom-input" type="text" [(ngModel)]="anomalie.enginDeclare"
+            placeholder="Ex: Pelle Doosan N°12, Bulldozer CAT D6, E570..." />
+          <span class="filled-check" *ngIf="anomalie.enginDeclare">✓</span>
+        </div>
+        <p class="field-help">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Saisir le code ou la désignation exact(e) inscrit(e) sur l'engin.
+        </p>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 2 : DESCRIPTION ═══ -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon blue">
+          <ion-icon name="document-text"></ion-icon>
+        </div>
+        <div>
+          <h3 class="section-title">Description de la Panne</h3>
+          <p class="section-sub">Symptômes et circonstances</p>
+        </div>
+        <div class="section-badge">1 champ</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">
+          <ion-icon name="chatbubble-outline"></ion-icon>
+          Description complète <span class="required">*</span>
+        </label>
+        <div class="textarea-wrapper" [class.filled]="anomalie.description.length > 10">
+          <textarea class="custom-textarea" [(ngModel)]="anomalie.description"
+            placeholder="Décrivez précisément la panne observée :&#10;• Symptômes (bruits, fuites, voyants...)&#10;• Circonstances de découverte&#10;• Depuis quand ?&#10;• Impact sur l'activité..."
+            rows="6"></textarea>
+        </div>
+        <div class="textarea-footer">
+          <span class="char-count" [class.enough]="anomalie.description.length > 20">
+            {{ anomalie.description.length }} / 20 min. caractères
+          </span>
+          <span class="filled-check" *ngIf="anomalie.description.length > 20">✓ Suffisant</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 3 : CRITICITÉ ═══ -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon red">
+          <ion-icon name="warning"></ion-icon>
+        </div>
+        <div>
+          <h3 class="section-title">Niveau de Criticité</h3>
+          <p class="section-sub">Impact sur l'exploitation</p>
+        </div>
+        <div class="section-badge">1 champ</div>
+      </div>
+
+      <div class="criticite-grid">
+        <div class="criticite-card urgente" [class.selected]="anomalie.criticite === 'URGENTE'"
+          (click)="anomalie.criticite = 'URGENTE'">
+          <div class="crit-dot urgente"></div>
+          <ion-icon name="flash"></ion-icon>
+          <span class="crit-label">URGENTE</span>
+          <span class="crit-desc">Machine à l'arrêt complet — intervention immédiate</span>
+        </div>
+        <div class="criticite-card normale" [class.selected]="anomalie.criticite === 'NORMALE'"
+          (click)="anomalie.criticite = 'NORMALE'">
+          <div class="crit-dot normale"></div>
+          <ion-icon name="alert-circle"></ion-icon>
+          <span class="crit-label">NORMALE</span>
+          <span class="crit-desc">Fonctionne partiellement — dégradation</span>
+        </div>
+        <div class="criticite-card planifiee" [class.selected]="anomalie.criticite === 'PLANIFIEE'"
+          (click)="anomalie.criticite = 'PLANIFIEE'">
+          <div class="crit-dot planifiee"></div>
+          <ion-icon name="calendar"></ion-icon>
+          <span class="crit-label">PLANIFIÉE</span>
+          <span class="crit-desc">Défaut mineur — peut être programmé</span>
+        </div>
+      </div>
+
+      <p class="criticite-selected-label" *ngIf="anomalie.criticite">
+        <ion-icon name="checkmark-circle" color="success"></ion-icon>
+        Criticité sélectionnée : <strong>{{ anomalie.criticite }}</strong>
+      </p>
+    </div>
+
+    <!-- ═══ SECTION 4 : PHOTO ═══ -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon green">
+          <ion-icon name="camera"></ion-icon>
+        </div>
+        <div>
+          <h3 class="section-title">Photo de la Panne</h3>
+          <p class="section-sub">Documentation visuelle obligatoire</p>
+        </div>
+        <div class="section-badge">1 champ</div>
+      </div>
+
+      <div class="photo-zone" (click)="takePicture()" *ngIf="!anomalie.photoUrl">
+        <ion-icon name="camera-outline" class="photo-icon"></ion-icon>
+        <p class="photo-text">Appuyez pour photographier la panne</p>
+        <span class="photo-hint">Une photo claire du problème est obligatoire</span>
+        <div class="photo-btn">
+          <ion-icon name="camera"></ion-icon> Prendre une photo
+        </div>
+      </div>
+
+      <div class="photo-preview" *ngIf="anomalie.photoUrl">
+        <div class="photo-success-badge">
+          <ion-icon name="checkmark-circle"></ion-icon> Photo ajoutée
+        </div>
+        <img [src]="anomalie.photoUrl" alt="Photo de la panne" class="preview-img">
+        <button class="remove-photo" (click)="removePhoto()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reprendre la photo
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ SECTION 5 : STATUT ═══ -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-icon purple">
+          <ion-icon name="flag"></ion-icon>
+        </div>
+        <div>
+          <h3 class="section-title">Statut de la Déclaration</h3>
+          <p class="section-sub">État actuel de la panne</p>
+        </div>
+        <div class="section-badge">1 champ</div>
+      </div>
+
+      <div class="statut-grid">
+        <div class="statut-card" *ngFor="let s of statutOptions" [class.selected]="anomalie.statut === s.value"
+          (click)="anomalie.statut = s.value">
+          <ion-icon [name]="s.icon" [style.color]="s.color"></ion-icon>
+          <span class="statut-label">{{ s.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SOUMISSION ═══ -->
+    <div class="submit-section">
+
+      <!-- Checklist de validation -->
+      <div class="validation-checklist">
+        <p class="checklist-title">Récapitulatif avant envoi</p>
+        <div class="check-item" [class.ok]="anomalie.chantierDeclare">
+          <ion-icon [name]="anomalie.chantierDeclare ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Chantier renseigné</span>
+        </div>
+        <div class="check-item" [class.ok]="anomalie.enginId || anomalie.enginDeclare">
+          <ion-icon
+            [name]="(anomalie.enginId || anomalie.enginDeclare) ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Engin identifié</span>
+        </div>
+        <div class="check-item" [class.ok]="anomalie.enginDeclare">
+          <ion-icon [name]="anomalie.enginDeclare ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Code matériel saisi</span>
+        </div>
+        <div class="check-item" [class.ok]="anomalie.description.length > 20">
+          <ion-icon [name]="anomalie.description.length > 20 ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Description complète</span>
+        </div>
+        <div class="check-item" [class.ok]="anomalie.criticite">
+          <ion-icon [name]="anomalie.criticite ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Criticité définie : <strong>{{ anomalie.criticite }}</strong></span>
+        </div>
+        <div class="check-item" [class.ok]="anomalie.photoUrl">
+          <ion-icon [name]="anomalie.photoUrl ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+          <span>Photo jointe</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" (click)="submitAnomalie()" [disabled]="isSubmitting || !isFormReady()"
+        [class.submitting]="isSubmitting" [class.ready]="isFormReady()">
+        <div class="btn-content" *ngIf="!isSubmitting">
+          <ion-icon name="send"></ion-icon>
+          <span>Soumettre la Déclaration</span>
+        </div>
+        <div class="btn-content" *ngIf="isSubmitting">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Envoi en cours...</span>
+        </div>
+      </button>
+
+      <p class="submit-hint" *ngIf="!isFormReady()">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        Remplissez tous les champs pour pouvoir soumettre
+      </p>
+      <p class="submit-hint success" *ngIf="isFormReady()">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        Prêt à être transmis à l'équipe de maintenance
+      </p>
+    </div>
+
+  </div>
+</ion-content>

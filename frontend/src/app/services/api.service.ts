@@ -30,6 +30,10 @@ export class ApiService {
     return this.http.post<Engin>(`${API_URL}/engins`, engin);
   }
 
+  updateMateriel(id: number, engin: Partial<Engin>): Observable<Engin> {
+    return this.http.put<Engin>(`${API_URL}/engins/${id}`, engin);
+  }
+
   // --- Anomalies ---
   getAnomalies(): Observable<Anomalie[]> {
     return this.http.get<Anomalie[]>(`${API_URL}/anomalies`);
@@ -132,5 +136,89 @@ export class ApiService {
   // --- ERP SYNC ---
   genererXmlErp(id: number): Observable<any> {
     return this.http.get(`${API_URL}/erp/export-xml/${id}`);
+  }
+
+  // --- SYNCHRO POINTAGES MATERIEL (dates automatiques) ---
+  syncPointagesAujourdhui(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/sync/today`, {});
+  }
+
+  syncPointagesSemaine(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/sync/week`, {});
+  }
+
+  syncPointagesMois(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/sync/month`, {});
+  }
+
+  /** Lance la synchro ERP en arrière-plan (non-bloquante) */
+  syncAsync(periode: 'today' | 'week' | 'month' | '6months' | '12months' | 'year' = 'month'): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/sync/async?periode=${periode}`, {});
+  }
+
+  /** Polling : état actuel de la synchronisation ERP */
+  getSyncStatus(): Observable<any> {
+    return this.http.get<any>(`${API_URL}/admin/erp/sync/status`);
+  }
+
+  /** Recalcule les affectations chantier depuis les pointages locaux (sans ERP) */
+  recalculerAffectationsLocal(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/recalcul-affectations`, {});
+  }
+
+  /** Synchronise les codes matériels depuis le registre ERP /getMateriel (source de vérité) */
+  syncCodesDepuisErp(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/admin/erp/sync-codes`, {});
+  }
+
+  // --- Plans d'Intervention ---
+  getPlansIntervention(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/plans-intervention`);
+  }
+
+  getPlanInterventionById(id: number): Observable<any> {
+    return this.http.get<any>(`${API_URL}/plans-intervention/${id}`);
+  }
+
+  createPlanFromAnomalie(idAnomalie: number, plan: any): Observable<any> {
+    return this.http.post<any>(`${API_URL}/plans-intervention/from-anomalie/${idAnomalie}`, plan);
+  }
+
+  addInterventionToPlan(idPlan: number, intervention: any): Observable<any> {
+    return this.http.post<any>(`${API_URL}/plans-intervention/${idPlan}/interventions`, intervention);
+  }
+
+  updatePlan(id: number, plan: any): Observable<any> {
+    return this.http.put<any>(`${API_URL}/plans-intervention/${id}`, plan);
+  }
+
+  // --- CHANTIERS (synchronisés avec l'ERP WinDev) ---
+  getChantiers(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/chantiers`);
+  }
+
+  syncChantiers(): Observable<any> {
+    return this.http.post<any>(`${API_URL}/chantiers/sync-erp`, {});
+  }
+
+  getEnginsByChantier(chantierId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/chantiers/${chantierId}/engins`);
+  }
+
+  affecterEnginAuChantier(enginId: number, chantierId: number | null): Observable<any> {
+    return this.http.put<any>(`${API_URL}/chantiers/affecter-engin/${enginId}`, { chantierId });
+  }
+
+  updateChantier(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${API_URL}/chantiers/${id}`, data);
+  }
+
+  // --- POINTAGES MATERIEL ---
+  getPointagesByEngin(enginId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/pointages/engin/${enginId}`);
+  }
+
+  getPointageStatsByChantierAndMonth(chantierId: number, year: number, month: number): Observable<{ [enginId: number]: number }> {
+    return this.http.get<{ [enginId: number]: number }>(`${API_URL}/pointages/chantier/${chantierId}/mois/${year}/${month}`);
   }
 }

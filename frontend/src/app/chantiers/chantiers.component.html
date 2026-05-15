@@ -1,0 +1,424 @@
+<div class="app">
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="ptitle">Chantiers — Heures Matériel & Facturation</div>
+      <div class="pbc">STAPORT · Module financier ERP · {{ formatSyncTime(lastSyncTime) }}</div>
+    </div>
+    <div class="tbr">
+      <select class="light-select" style="padding: 6px 12px; margin-right: 8px;" (change)="onMonthChange($event)" [ngModel]="selectedMonthStr">
+        <option value="2026-05">Mai 2026</option>
+        <option value="2026-04">Avril 2026</option>
+        <option value="2026-03">Mars 2026</option>
+        <option value="2026-02">Février 2026</option>
+        <option value="2026-01">Janvier 2026</option>
+        <option value="2025-12">Décembre 2025</option>
+        <option value="2025-11">Novembre 2025</option>
+        <option value="2025-10">Octobre 2025</option>
+        <option value="2025-09">Septembre 2025</option>
+        <option value="2025-08">Août 2025</option>
+        <option value="2025-07">Juillet 2025</option>
+        <option value="2025-06">Juin 2025</option>
+        <option value="2025-05">Mai 2025</option>
+        <option value="2025-04">Avril 2025</option>
+        <option value="2025-03">Mars 2025</option>
+        <option value="2025-02">Février 2025</option>
+        <option value="2025-01">Janvier 2025</option>
+      </select>
+
+      <!-- Statut dernière synchro -->
+      <div class="sync-status-bar" *ngIf="syncStatus || lastSyncTime">
+        <span class="sync-dot"
+          [class.dot-running]="syncStatus?.status === 'RUNNING' || syncing"
+          [class.dot-success]="syncStatus?.status === 'SUCCESS' && !syncing"
+          [class.dot-error]="syncStatus?.status === 'ERROR' && !syncing">
+        </span>
+        <span class="sync-label">
+          <ng-container *ngIf="syncing">Synchro en cours...</ng-container>
+          <ng-container *ngIf="!syncing && syncStatus?.status === 'SUCCESS'">
+            Synchro OK
+          </ng-container>
+          <ng-container *ngIf="!syncing && syncStatus?.status === 'ERROR'">
+            Erreur ERP
+          </ng-container>
+          <ng-container *ngIf="!syncing && !syncStatus">
+            Prêt
+          </ng-container>
+        </span>
+      </div>
+
+      <button class="tbtn" (click)="recalculerAffectationsLocal()" [disabled]="recalculating || syncing" title="Recalcule les affectations depuis les données locales">
+        <svg *ngIf="recalculating" class="spin-anim" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+        <svg *ngIf="!recalculating" width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round"/></svg>
+        {{ recalculating ? 'Calcul...' : 'Sauvegarder état' }}
+      </button>
+
+      <button class="tbtn pri" (click)="syncFromErp('month')" [disabled]="syncing || recalculating">
+        <svg *ngIf="syncing" class="spin-anim" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+        <svg *ngIf="!syncing" width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke-width="2"/></svg>
+        {{ syncing ? 'Synchro...' : 'Synchro Mois' }}
+      </button>
+
+      <button class="tbtn grn" (click)="openAffectModal()">
+        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-width="2.5" stroke-linecap="round"/></svg>
+        Affecter engin
+      </button>
+    </div>
+  </div>
+
+  <div class="page">
+    
+    <!-- Bandeau de notification (optionnel) -->
+    <div *ngIf="recalcResult" class="result-banner" [class.banner-success]="recalcResult.status === 'SUCCESS'" [class.banner-error]="recalcResult.status === 'ERROR'">
+      <span *ngIf="recalcResult.status === 'SUCCESS'">État sauvegardé — {{ recalcResult.enginsMisAJour }} engin(s) mis à jour.</span>
+      <span *ngIf="recalcResult.status === 'ERROR'">Erreur : {{ recalcResult.message }}</span>
+    </div>
+
+    <!-- KPIs globaux -->
+    <div class="krow">
+      <div class="kc blu">
+        <div class="kico" style="background:#eff6ff;color:#3b82f6"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke-width="2"/></svg></div>
+        <div class="klbl">Chantiers actifs</div>
+        <div class="kval" style="color:#60A5FA">{{ totalActifs }}</div>
+        <div class="ksub">sur {{ chantiers.length }} enregistrés</div>
+      </div>
+      <div class="kc grn">
+        <div class="kico" style="background:#ecfdf5;color:#10b981"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M12 8v4l3 3" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="klbl">Heures / mois (chantier sél.)</div>
+        <div class="kval" style="color:#34D399">{{ totalHeuresMois | number:'1.0-0' }}h</div>
+        <div class="ksub">cumul pointages</div>
+      </div>
+      <div class="kc amb">
+        <div class="kico" style="background:#fffbeb;color:#f59e0b"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke-width="2"/></svg></div>
+        <div class="klbl">Loyer / mois (chantier sél.)</div>
+        <div class="kval" style="color:#FCD34D">{{ totalLoyerMois | number:'1.0-0' }}</div>
+        <div class="ksub">MAD · estimation</div>
+      </div>
+      <div class="kc pur">
+        <div class="kico" style="background:#f5f3ff;color:#8b5cf6"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-width="2"/></svg></div>
+        <div class="klbl">Engins Affectés</div>
+        <div class="kval" style="color:#A78BFA">{{ selectedChantierEngins.length }}</div>
+        <div class="ksub">sur le chantier sélectionné</div>
+      </div>
+      <div class="kc tea">
+        <div class="kico" style="background:#ecfeff;color:#06b6d4"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="klbl">Utilisation Moy.</div>
+        <div class="kval" style="color:#06B6D4">{{ utilisationMoyenne }}%</div>
+        <div class="ksub">basé sur 176h/mois</div>
+      </div>
+    </div>
+
+    <!-- Sélecteur chantier + résumé -->
+    <div class="panel" *ngIf="selectedChantier">
+      <div class="phd">
+        <span class="ptl">Chantier sélectionné — détail heures & facturation</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="hdr" style="overflow: visible;">
+            <div style="position: relative; width: 400px; display: inline-block;">
+              <input type="text" 
+                     [(ngModel)]="searchChantier" 
+                     (focus)="showChantierList = true" 
+                     (blur)="hideList()" 
+                     placeholder="Rechercher ou sélectionner un chantier..." 
+                     class="light-select" 
+                     style="width: 100%; box-sizing: border-box;">
+              
+              <div class="custom-select-list" *ngIf="showChantierList">
+                <div class="custom-select-item" (mousedown)="selectChantierFromList(null)">
+                  -- Tous les chantiers --
+                </div>
+                <div *ngFor="let c of filteredChantiers" class="custom-select-item" (mousedown)="selectChantierFromList(c)">
+                  <span style="font-weight:600; color:#475569" *ngIf="c.codeErp">{{ c.codeErp }} &middot; </span>
+                  <span>{{ c.nom }}</span>
+                </div>
+                <div *ngIf="filteredChantiers.length === 0" style="padding: 10px 16px; font-size: 13px; color: #94a3b8;">
+                  Aucun résultat
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pbody">
+
+        <div class="chantier-sel">
+          <div class="csel-left">
+            <div class="csel-id">#{{ selectedChantier.codeErp || 'LOCAL' }} · Client : STAPORT</div>
+            <div class="csel-name">{{ selectedChantier.nom }}</div>
+            <div class="csel-loc">{{ selectedChantier.localisation || 'Localisation non spécifiée' }} · {{ selectedChantier.designationErp || 'N/A' }}</div>
+            <div class="tag-row">
+              <span class="tag">{{ selectedChantierEngins.length }} engins affectés</span>
+              <span class="tag" *ngIf="selectedChantier.statut === 'ACTIF'">En cours</span>
+            </div>
+          </div>
+          <div class="csel-right">
+            <div class="csel-ca">{{ totalLoyerMois | number:'1.0-0' }} MAD</div>
+            <div class="csel-ca-lbl">Loyer estimé matériel · ce mois</div>
+            <div class="csel-badges">
+              <span class="pill" [ngClass]="selectedChantier.statut === 'ACTIF' ? 'enc' : 'amb'">{{ selectedChantier.statut }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table principale -->
+        <div style="overflow-x:auto">
+        <table class="mat-table">
+          <thead>
+            <tr>
+              <th style="width:110px">Code matériel</th>
+              <th style="width:140px">Désignation</th>
+              <th style="width:80px">Catégorie</th>
+              <th style="width:70px">Statut</th>
+              <th style="width:90px">Taux (MAD/j)</th>
+              <th style="width:100px">Loyer total</th>
+              <th style="width:80px">Heures</th>
+              <th style="width:80px">% util.</th>
+              <th style="width:60px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="selectedChantierEngins.length === 0">
+              <td colspan="10" style="text-align: center; padding: 30px; color: #64748B;">
+                Aucun matériel affecté à ce chantier.
+              </td>
+            </tr>
+            <tr *ngFor="let e of selectedChantierEngins">
+              <td class="tdc">{{ e.codeMateriel || e.matricule }}</td>
+              <td class="tdn">{{ e.marque }} {{ e.modele }}</td>
+              <td><span class="pill" style="background:#f1f5f9;color:#64748b;font-size:8.5px">{{ e.categorie || 'Engin' }}</span></td>
+              <td>
+                <span class="pill" [ngClass]="e.statut === 'EN_PANNE' ? 'amb' : 'grn'" style="font-size:8.5px">
+                  {{ e.statut || 'ACTIF' }}
+                </span>
+              </td>
+              <td class="num-blue">{{ e.prixMoyenPondere || 1800 | number:'1.0-0' }} DH</td>
+              <td class="num-white">{{ getLoyerTotal(e) | number:'1.0-0' }}</td>
+              <td style="font-weight:700;color:#3b82f6">{{ getHeuresMois(e) | number:'1.0-1' }} h</td>
+              <td>
+                <div class="hbar-wrap">
+                  <div class="hbar-track"><div class="hbar-fill" [style.width.%]="getPourcentageUtilisation(e)" [style.background]="e.statut === 'EN_PANNE' ? '#ef4444' : '#10b981'"></div></div>
+                  <span style="font-size:10px;" [style.color]="e.statut === 'EN_PANNE' ? '#f87171' : '#10b981'" style="width:28px">{{ getPourcentageUtilisation(e) }}%</span>
+                </div>
+              </td>
+              <td>
+                <div style="display:flex;gap:4px">
+                  <button class="icon-btn-sm" (click)="openPointagesModal(e)" title="Détails Heures (ERP)">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  <button class="icon-btn-sm danger" (click)="desaffecterEngin(e.idEngin)" title="Désaffecter">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr style="background:#f8fafc" *ngIf="selectedChantierEngins.length > 0">
+              <td colspan="5" style="padding:8px 9px;font-size:10px;font-weight:700;color:#475569;text-align:right;letter-spacing:.5px">TOTAL CHANTIER</td>
+              <td class="num-green" style="font-size:13px">{{ totalLoyerMois | number:'1.0-0' }} MAD</td>
+              <td style="color:#3b82f6;font-weight:700">{{ totalHeuresMois | number:'1.0-1' }} h</td>
+              <td style="color:#10b981;font-weight:700">{{ utilisationMoyenne }}% moy</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloc financier + CA par chantier -->
+    <div class="two-col" *ngIf="selectedChantierEngins.length > 0">
+      <!-- Synthèse d'Activité -->
+      <div class="panel">
+        <div class="phd"><span class="ptl">Synthèse d'Activité — {{ selectedChantier?.codeErp || 'LOCAL' }}</span><span class="pact">Détail →</span></div>
+        <div class="pbody">
+          <div class="fin-grid" style="margin-bottom:12px">
+            <div class="fin-card">
+              <div class="fin-label">Loyer total matériel / mois</div>
+              <div class="fin-val" style="color:#0f172a">{{ totalLoyerMois | number:'1.0-0' }}</div>
+              <div class="fin-sub">MAD · {{ selectedChantierEngins.length }} engins</div>
+            </div>
+            <div class="fin-card">
+              <div class="fin-label">Heures productives totales</div>
+              <div class="fin-val" style="color:#3b82f6">{{ totalHeuresMois | number:'1.0-1' }}</div>
+              <div class="fin-sub">Heures · pointages validés</div>
+            </div>
+            <div class="fin-card">
+              <div class="fin-label">Taux d'utilisation moyen</div>
+              <div class="fin-val" style="color:#10b981">{{ utilisationMoyenne }}%</div>
+              <div class="fin-sub">Basé sur 176h/mois</div>
+            </div>
+          </div>
+
+          <div class="sum-box">
+            <div class="sum-row"><span class="sum-lbl">Total Loyer Matériel (MAD)</span><span class="sum-val" style="color:#0f172a; font-weight: 700;">{{ totalLoyerMois | number:'1.0-0' }} MAD</span></div>
+            <div class="sum-row"><span class="sum-lbl">Total Heures Travaillées</span><span class="sum-val" style="color:#3b82f6; font-weight: 700;">{{ totalHeuresMois | number:'1.0-1' }} h</span></div>
+            <div class="sum-sep"></div>
+            <div class="sum-row"><span class="sum-lbl" style="color:#64748b; font-size: 10px;">Note : Les coûts annexes (MO, carburant, frais fixes) ne sont pas inclus. Seul le loyer sec des engins basé sur le taux journalier est affiché.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CA par engin (bar chart) -->
+      <div class="panel">
+        <div class="phd"><span class="ptl">Top 5 Facturation Matériels</span><span class="pact">Complet →</span></div>
+        <div class="pbody">
+          <div class="bar-chart">
+            <div class="bc-row" *ngFor="let e of selectedChantierEngins.slice(0, 5)">
+              <span class="bc-lbl" [title]="e.marque + ' ' + e.modele">{{ e.codeMateriel || e.matricule }}</span>
+              <div class="bc-track">
+                <div class="bc-fill" [style.width.%]="getPourcentageUtilisation(e)" style="background:#8B5CF6">
+                  <span class="bc-fill-lbl">{{ getLoyerTotal(e) | number:'1.0-0' }}</span>
+                </div>
+              </div>
+              <span class="bc-val" style="color:#A78BFA">{{ getLoyerTotal(e) / 1000 | number:'1.0-1' }}K</span>
+            </div>
+            <div *ngIf="selectedChantierEngins.length === 0" style="color:#64748B; font-size:11px; padding:20px; text-align:center;">Pas de données</div>
+          </div>
+
+          <div style="border-top:1px solid #e2e8f0;margin-top:14px;padding-top:12px" *ngIf="selectedChantierEngins.length > 0">
+            <div style="font-size:9px;color:#475569;letter-spacing:.8px;margin-bottom:8px;text-transform:uppercase">Indicateurs clés du mois</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;justify-content:space-between;font-size:10px"><span style="color:#64748b">Taux d'utilisation moyen flotte</span><span class="num-green">{{ utilisationMoyenne }}%</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:10px"><span style="color:#64748b">Loyer / jour moyen flotte</span><span class="num-blue">{{ (totalLoyerMois / (totalHeuresMois / 10) || 0) | number:'1.0-0' }} MAD/j</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bandeau récap global -->
+    <div class="totals-banner">
+      <div class="tot-item">
+        <div class="tot-lbl">Heures totales</div>
+        <div class="tot-val" style="color:#34D399">{{ totalHeuresMois | number:'1.0-0' }}h</div>
+        <div class="tot-sub">chantier sélectionné</div>
+      </div>
+      <div class="tot-item">
+        <div class="tot-lbl">Loyer total estimé</div>
+        <div class="tot-val" style="color:#FCD34D">{{ totalLoyerMois | number:'1.0-0' }}</div>
+        <div class="tot-sub">MAD · ce mois</div>
+      </div>
+      <div class="tot-item">
+        <div class="tot-lbl">Engins Actifs</div>
+        <div class="tot-val" style="color:#A78BFA">{{ selectedChantierEngins.length }}</div>
+        <div class="tot-sub">sur le chantier</div>
+      </div>
+      <div class="tot-item">
+        <div class="tot-lbl">Marge brute globale</div>
+        <div class="tot-val" style="color:#06B6D4">37%</div>
+        <div class="tot-sub">Indicateur cible</div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<!-- ══════════════ MODAL AFFECTATION ENGIN ══════════════ -->
+<div class="modal-overlay" *ngIf="showAffectModal" (click)="closeAffectModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Affecter un engin — {{ selectedChantier?.codeErp || '' }} · {{ selectedChantier?.nom }}</span>
+      <button class="modal-close" (click)="closeAffectModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div *ngIf="loadingEngins" style="text-align:center;padding:20px;color:#94A3B8">Chargement des engins disponibles...</div>
+      <div *ngIf="!loadingEngins && availableEngins.length === 0" style="text-align:center;padding:20px;color:#94A3B8">
+        Tous les engins actifs sont déjà affectés à ce chantier ou à d'autres chantiers.
+      </div>
+      <div class="engin-list" *ngIf="!loadingEngins && availableEngins.length > 0">
+        <div class="engin-item" *ngFor="let e of availableEngins">
+          <div class="engin-info">
+            <span class="engin-code">{{ e.codeMateriel || e.matricule }}</span>
+            <span class="engin-name">{{ e.marque }} {{ e.modele }}</span>
+            <span class="engin-chantier" *ngIf="e.chantier">
+              → actuellement sur <strong>{{ e.chantier.codeErp || 'chantier local' }}</strong>
+            </span>
+            <span class="engin-chantier none" *ngIf="!e.chantier">→ au parc (non affecté)</span>
+          </div>
+          <button class="tbtn grn" style="font-size:11px;padding:5px 12px"
+            [disabled]="affectingEnginId === e.idEngin"
+            (click)="affecterEngin(e.idEngin)">
+            <svg *ngIf="affectingEnginId === e.idEngin" class="spin-anim" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+            {{ affectingEnginId === e.idEngin ? '...' : 'Affecter' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL HISTORIQUE HEURES (ERP) ── -->
+<div class="modal-overlay" *ngIf="showPointagesModal" (click)="closePointagesModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()" style="width: 700px; max-height: 85vh;">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:12px">
+        <div class="icon-circle-blue">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <h3 style="margin:0; font-size:16px; color:#F1F5F9">Détails Heures de Production</h3>
+          <p style="margin:2px 0 0; font-size:12px; color:#94A3B8">
+            {{ selectedEnginForPointages?.codeMateriel || selectedEnginForPointages?.matricule }} · {{ selectedEnginForPointages?.marque }} {{ selectedEnginForPointages?.modele }}
+          </p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closePointagesModal()">&times;</button>
+    </div>
+
+    <div class="modal-body" style="padding:0; overflow-y:auto">
+      <div *ngIf="loadingPointages" style="padding:40px; text-align:center">
+        <div class="spinner"></div>
+        <p style="font-size:13px; color:#94A3B8; margin-top:10px">Récupération des données ERP...</p>
+      </div>
+
+      <div *ngIf="!loadingPointages && pointagesEngin.length === 0" style="padding:40px; text-align:center">
+        <p style="font-size:14px; color:#64748B">Aucun historique de pointage trouvé pour ce matériel.</p>
+      </div>
+
+      <div class="table-container" *ngIf="!loadingPointages && pointagesEngin.length > 0">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Période / Shift</th>
+              <th style="text-align:right">Heures Travail.</th>
+              <th>Chantier (ERP)</th>
+              <th>ID Synchro</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of pointagesEngin">
+              <td style="font-weight:600; color:#F1F5F9">{{ p.datePointage | date:'dd/MM/yyyy' }}</td>
+              <td style="font-size:12px; color:#94A3B8">
+                <span *ngIf="p.heureDebut">{{ p.heureDebut }}h - {{ p.heureFin }}h</span>
+                <span *ngIf="!p.heureDebut">Journée complète</span>
+              </td>
+              <td style="text-align:right">
+                <span class="num-blue" style="font-size:14px; font-weight:700">{{ p.heuresTravaillees | number:'1.1-1' }} h</span>
+              </td>
+              <td style="font-size:11px; color:#94A3B8">
+                {{ p.codeChantier || '—' }}
+              </td>
+              <td style="font-family:monospace; font-size:10px; color:#475569">
+                {{ p.syncId || 'Local' }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot style="background:#0A0D14; font-weight:700">
+            <tr>
+              <td colspan="2" style="text-align:right; color:#94A3B8">CUMUL TOTAL :</td>
+              <td style="text-align:right; color:#60A5FA; font-size:15px">
+                {{ selectedEnginForPointages?.heuresProductionCumulees || 0 | number:'1.0-1' }} h
+              </td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    
+    <div style="padding:15px 20px; background:#fafbfc; border-top:1px solid #e2e8f0; text-align:right">
+      <button class="btn-primary" (click)="closePointagesModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+</div>

@@ -1,0 +1,72 @@
+<ion-content class="login-content">
+
+  <!-- Animated Background Blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <div class="login-wrapper">
+
+    <!-- Logo & Title -->
+    <div class="login-header">
+      <div class="logo-circle">
+        <ion-icon name="construct" class="logo-icon"></ion-icon>
+      </div>
+      <h1 class="app-title">Stapro<span class="accent">360</span></h1>
+      <p class="app-subtitle">Espace Demande d'intervention</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <div class="card-header-label">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>Connexion Sécurisée</span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="input-group">
+        <div class="input-icon">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="input-field">
+          <label class="input-label">Email professionnel</label>
+          <input type="email" [(ngModel)]="email" placeholder="votre@email.com" class="custom-input" />
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="input-group">
+        <div class="input-icon">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <div class="input-field">
+          <label class="input-label">Mot de passe</label>
+          <input type="password" [(ngModel)]="motDePasse" placeholder="••••••••" class="custom-input" />
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-box" *ngIf="errorMessage">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Login Button -->
+      <button class="login-btn" (click)="login()" [class.loading]="isLoading">
+        <span *ngIf="!isLoading">
+          <ion-icon name="log-in-outline"></ion-icon>
+          Se Connecter
+        </span>
+        <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+      </button>
+
+      <p class="hint-text">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Utilisez vos identifiants Atelier360
+      </p>
+    </div>
+
+    <p class="version-text">v1.0.0 — Atelier360 Mobile © 2026</p>
+  </div>
+
+</ion-content>

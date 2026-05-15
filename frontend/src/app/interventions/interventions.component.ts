@@ -22,17 +22,32 @@ import { ApiService } from '../services/api.service';
 
       <!-- KPI Metrics -->
       <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-title">En Cours</div>
-          <div class="metric-value text-primary">{{ countEnCours }}</div>
+        <div class="metric-card gradient-primary">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">En Cours</div>
+            <div class="metric-value">{{ countEnCours }}</div>
+          </div>
         </div>
-        <div class="metric-card">
-          <div class="metric-title">Terminées</div>
-          <div class="metric-value text-success">{{ countTermine }}</div>
+        <div class="metric-card gradient-success">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">Terminées</div>
+            <div class="metric-value">{{ countTermine }}</div>
+          </div>
         </div>
-        <div class="metric-card">
-          <div class="metric-title">Coût Total</div>
-          <div class="metric-value text-warning">{{ totalCout | number:'1.2-2' }} MAD</div>
+        <div class="metric-card gradient-warning">
+          <div class="metric-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div class="metric-content">
+            <div class="metric-title">Coût Total</div>
+            <div class="metric-value">{{ totalCout | number:'1.2-2' }} <span class="currency">MAD</span></div>
+          </div>
         </div>
       </div>
 
@@ -79,16 +94,15 @@ import { ApiService } from '../services/api.service';
               </td>
               <td>
                 <span class="badge" 
-                      [class.badge-primary]="int.statut === 'Programmée' || int.statut === 'En Cours'"
+                      [class.badge-primary]="int.statut === 'Programmée' || int.statut === 'En Cours' || int.statut === 'PROGRAMMEE' || int.statut === 'EN_COURS' || int.statut === 'EN_ATTENTE'"
                       [class.badge-warning]="int.statut === 'En Attente Pièces'"
-                      [class.badge-success]="int.statut === 'Clôturée'">
+                      [class.badge-success]="int.statut === 'Clôturée' || int.statut === 'CLOTUREE'">
                   {{ int.statut }}
                 </span>
               </td>
               <td class="actions-cell">
-                <button class="btn-action btn-action-primary" *ngIf="int.statut !== 'Clôturée'" (click)="ouvrirModalPieces(int)" title="Besoins en pièces">Pièces</button>
-                <button class="btn-action btn-action-warning" *ngIf="int.statut === 'Programmée' || int.statut === 'En Cours'" (click)="mettreEnAttente(int)" title="Mettre en attente">Pause</button>
-                <button class="btn-action btn-action-success" *ngIf="int.statut !== 'Clôturée'" (click)="ouvrirCloture(int)" title="Clôturer">Clôturer</button>
+                <button class="btn-action btn-action-warning" *ngIf="int.statut === 'Programmée' || int.statut === 'En Cours' || int.statut === 'PROGRAMMEE' || int.statut === 'EN_COURS' || int.statut === 'EN_ATTENTE'" (click)="mettreEnAttente(int)" title="Mettre en attente">Pause</button>
+                <button class="btn-action btn-action-success" *ngIf="int.statut !== 'Clôturée' && int.statut !== 'CLOTUREE'" (click)="ouvrirCloture(int)" title="Saisir le rapport et clôturer">Saisir Rapport</button>
                 <button class="btn-icon btn-icon-danger" (click)="supprimerIntervention(int)" title="Supprimer">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
@@ -152,85 +166,76 @@ import { ApiService } from '../services/api.service';
         </div>
       </div>
 
-      <!-- Cloture Modal -->
+      <!-- Cloture & Rapport Modal -->
       <div class="modal-backdrop" *ngIf="interventionACloturer" (click)="interventionACloturer = null">
-        <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-container modal-large" (click)="$event.stopPropagation()">
           <div class="modal-header">
-            <h2>Clôturer l'OT {{ interventionACloturer.idStr }}</h2>
+            <div>
+               <h2>Saisie du Rapport — {{ interventionACloturer.idStr }}</h2>
+               <p class="modal-subtitle" style="margin:0; font-size: 0.875rem; color: #64748b;">{{ interventionACloturer.engin }}</p>
+            </div>
             <button class="btn-close" (click)="interventionACloturer = null">×</button>
           </div>
-          <form [formGroup]="clotureForm" (ngSubmit)="soumettreCloture()">
-            <div class="modal-body">
-              <div class="form-group">
-                <label>Durée (Heures) *</label>
-                <input type="number" step="0.5" formControlName="dureeReelle" class="form-control">
-              </div>
-              <div class="form-group">
-                <label>Coût M.O (MAD)</label>
-                <input type="number" step="0.01" formControlName="cout" class="form-control">
-              </div>
-              <div class="form-group">
-                <label>Rapport Technique</label>
-                <textarea formControlName="observations" class="form-control" rows="4"></textarea>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn-secondary" (click)="interventionACloturer = null">Annuler</button>
-              <button type="submit" class="btn-primary" style="background-color: #059669;" [disabled]="clotureForm.invalid">Valider la clôture</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Pieces Modal -->
-      <div class="modal-backdrop" *ngIf="modalPiecesActif" (click)="fermerModalPieces()">
-        <div class="modal-container" style="max-width: 800px;" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h2>Besoins en Pièces — {{ modalPiecesActif.idStr }}</h2>
-            <button class="btn-close" (click)="fermerModalPieces()">×</button>
-          </div>
           <div class="modal-body">
-            <div class="form-group" style="margin-bottom: 24px;">
-              <label>Rechercher une pièce</label>
-              <input type="text" [(ngModel)]="searchPiece" (input)="rechercherPieces()" class="form-control" placeholder="Ex: filtre...">
-              <div *ngIf="searchResultsPieces.length > 0" class="search-results">
-                <div *ngFor="let piece of searchResultsPieces" class="search-item" (click)="ajouterAuBesoin(piece)">
-                  <div class="flex-1">
-                    <div class="engin-name">{{ piece.designation }}</div>
-                    <div class="engin-sub">Ref: {{ piece.reference || 'N/A' }} | Stock: {{ piece.quantiteEnStock }}</div>
-                  </div>
-                  <button class="btn-action btn-action-primary">+ Ajouter</button>
+             <form [formGroup]="clotureForm">
+                <div class="form-row">
+                   <div class="form-group flex-1">
+                     <label>Temps passé (Heures) *</label>
+                     <input type="number" step="0.5" formControlName="dureeReelle" class="form-control">
+                   </div>
+                   <div class="form-group flex-1">
+                     <label>Coût Main d'Œuvre (MAD)</label>
+                     <input type="number" step="0.01" formControlName="cout" class="form-control">
+                   </div>
                 </div>
-              </div>
-            </div>
+                <div class="form-group">
+                   <label>Observations / Rapport technique</label>
+                   <textarea formControlName="observations" class="form-control" rows="2"></textarea>
+                </div>
+             </form>
 
-            <div *ngIf="besoinPanier.length > 0">
-              <h4 style="margin-bottom: 12px; font-weight: 600; color: #0f172a;">Panier des Besoins</h4>
-              <table class="enterprise-table" style="margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <thead>
-                  <tr>
-                    <th>Pièce</th>
-                    <th>Stock</th>
-                    <th width="100">Qté</th>
-                    <th width="50"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let item of besoinPanier; let i = index">
-                    <td>{{ item.piece.designation }}</td>
-                    <td><span class="badge" [class.badge-success]="item.piece.quantiteEnStock > 0" [class.badge-danger]="item.piece.quantiteEnStock === 0">{{ item.piece.quantiteEnStock }}</span></td>
-                    <td>
-                      <input type="number" [(ngModel)]="item.quantite" (ngModelChange)="verifierQteBesoin(item)" min="1" class="form-control" style="padding: 4px; text-align: center;">
-                    </td>
-                    <td><button class="btn-icon btn-icon-danger" (click)="retirerDuBesoin(i)">×</button></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+             <hr style="border:0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+
+             <h3 style="font-size:1rem; margin-bottom: 12px; color: #0f172a;">Pièces consommées (Optionnel)</h3>
+             <div class="form-group" style="margin-bottom: 16px;">
+                <input type="text" [(ngModel)]="searchPiece" (input)="rechercherPieces()" class="form-control" placeholder="Rechercher une pièce dans le stock (ex: filtre)...">
+                <div *ngIf="searchResultsPieces.length > 0" class="search-results">
+                  <div *ngFor="let piece of searchResultsPieces" class="search-item" (click)="ajouterAuBesoin(piece)">
+                    <div class="flex-1">
+                      <div class="engin-name">{{ piece.designation }}</div>
+                      <div class="engin-sub">Ref: {{ piece.reference || 'N/A' }} | Stock: {{ piece.quantiteEnStock }}</div>
+                    </div>
+                    <button class="btn-action btn-action-primary">+ Ajouter</button>
+                  </div>
+                </div>
+             </div>
+
+             <div *ngIf="besoinPanier.length > 0">
+                <table class="enterprise-table" style="border: 1px solid #e2e8f0; border-radius: 8px;">
+                  <thead>
+                    <tr>
+                      <th>Pièce</th>
+                      <th width="100">Qté utilisée</th>
+                      <th width="50"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of besoinPanier; let i = index">
+                      <td>{{ item.piece.designation }}</td>
+                      <td>
+                        <input type="number" [(ngModel)]="item.quantite" (ngModelChange)="verifierQteBesoin(item)" min="1" class="form-control" style="padding: 4px; text-align: center;">
+                      </td>
+                      <td><button class="btn-icon btn-icon-danger" (click)="retirerDuBesoin(i)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button></td>
+                    </tr>
+                  </tbody>
+                </table>
+             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" (click)="fermerModalPieces()">Fermer</button>
-            <button type="button" class="btn-primary" [disabled]="besoinPanier.length === 0 || enSoumission" (click)="soumettreBesoinPieces()">Valider Besoins</button>
+            <button type="button" class="btn-secondary" (click)="interventionACloturer = null">Annuler</button>
+            <button type="button" class="btn-primary" style="background-color: #059669;" [disabled]="clotureForm.invalid || enSoumission" (click)="soumettreCloture()">Enregistrer le Rapport</button>
           </div>
         </div>
       </div>
@@ -292,6 +297,7 @@ import { ApiService } from '../services/api.service';
 
     .modal-backdrop { position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: flex-start; padding-top: 10vh; z-index: 50; }
     .modal-container { background: white; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; max-width: 600px; display: flex; flex-direction: column; max-height: 85vh; }
+    .modal-container.modal-large { max-width: 800px; }
     .modal-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .modal-header h2 { margin: 0; font-size: 1.125rem; font-weight: 600; color: #0f172a; }
     .btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; line-height: 1; padding: 0; }
@@ -366,7 +372,13 @@ export class InterventionsComponent implements OnInit {
 
   chargerEngins(): void {
     this.api.getMateriels().subscribe({
-      next: (data) => this.listeEngins = data,
+      next: (data) => {
+        this.listeEngins = data.filter((e: any) => {
+          const stat = (e.statut || '').toString().toUpperCase();
+          const cm = (e.codeMateriel || e.matricule || '').toString().toUpperCase();
+          return stat !== 'VENDU' && stat !== 'FERRAILLE' && !cm.includes('VENDU');
+        });
+      },
       error: (err) => console.error('Erreur de chargement des engins', err)
     });
   }
@@ -475,21 +487,27 @@ export class InterventionsComponent implements OnInit {
   }
 
   getBadgeClass(statut: string): string {
-    if (statut === 'Programmée' || statut === 'En Cours') return 'primary';
-    if (statut === 'En Attente Pièces') return 'warning';
-    if (statut === 'Clôturée') return 'success';
+    if (!statut) return '';
+    const s = statut.toUpperCase();
+    if (s === 'PROGRAMMÉE' || s === 'PROGRAMMEE' || s === 'EN COURS' || s === 'EN_COURS' || s === 'EN_ATTENTE') return 'primary';
+    if (s === 'EN ATTENTE PIÈCES' || s === 'EN ATTENTE PIECES') return 'warning';
+    if (s === 'CLÔTURÉE' || s === 'CLOTUREE') return 'success';
     return '';
   }
 
   ouvrirCloture(int: any): void {
     this.interventionACloturer = int;
     this.clotureForm.reset({ cout: 0 });
+    this.searchPiece = '';
+    this.searchResultsPieces = [];
+    this.besoinPanier = [];
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   soumettreCloture(): void {
     if (this.clotureForm.valid && this.interventionACloturer) {
+      this.enSoumission = true;
       const id = this.interventionACloturer.idRaw;
       const vals = this.clotureForm.value;
 
@@ -500,11 +518,47 @@ export class InterventionsComponent implements OnInit {
 
       this.api.validerEtCloturerIntervention(id, params.toString()).subscribe({
         next: () => {
-          alert('Intervention clôturée avec succès !');
+          if (this.besoinPanier.length > 0) {
+            this.soumettrePiecesApresCloture();
+          } else {
+            alert('Rapport enregistré avec succès !');
+            this.interventionACloturer = null;
+            this.enSoumission = false;
+            this.chargerInterventions();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.enSoumission = false;
+        }
+      });
+    }
+  }
+
+  soumettrePiecesApresCloture(): void {
+    const itemsEnStock = this.besoinPanier.filter(it => it.piece.quantiteEnStock >= 0); // On prend tout ce qui est déclaré
+    
+    if (itemsEnStock.length > 0) {
+      const demande = {
+        interventionId: this.interventionACloturer.idRaw,
+        motifOuEngin: `Pièces consommées pour OT ${this.interventionACloturer.idStr} (${this.interventionACloturer.engin})`,
+        demandeur: this.interventionACloturer.technicien || 'Chef Atelier',
+        lignes: itemsEnStock.map(it => ({ piece: { idPiece: it.piece.idPiece }, quantiteDemandee: it.quantite }))
+      };
+      
+      this.api.creerDemandeSortie(demande).subscribe({
+        next: () => {
+          alert('Rapport et pièces enregistrés avec succès !');
           this.interventionACloturer = null;
+          this.enSoumission = false;
           this.chargerInterventions();
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error('Erreur pièces', err);
+          this.interventionACloturer = null;
+          this.enSoumission = false;
+          this.chargerInterventions();
+        }
       });
     }
   }
@@ -555,22 +609,6 @@ export class InterventionsComponent implements OnInit {
   }
 
   // --- MODAL BESOIN EN PIECES ---
-  ouvrirModalPieces(int: any): void {
-    this.modalPiecesActif = int;
-    this.searchPiece = '';
-    this.searchResultsPieces = [];
-    this.besoinPanier = [];
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  fermerModalPieces(): void {
-    this.modalPiecesActif = null;
-    this.searchPiece = '';
-    this.searchResultsPieces = [];
-    this.besoinPanier = [];
-    this.enSoumission = false;
-  }
-
   rechercherPieces(): void {
     const q = this.searchPiece.toLowerCase().trim();
     if (!q) {
@@ -599,59 +637,4 @@ export class InterventionsComponent implements OnInit {
     if (item.quantite < 1) item.quantite = 1;
   }
 
-  get countSortie(): number {
-    return this.besoinPanier.filter(it => it.piece.quantiteEnStock >= it.quantite).length;
-  }
-
-  get countPreco(): number {
-    return this.besoinPanier.filter(it => it.piece.quantiteEnStock < it.quantite).length;
-  }
-
-  soumettreBesoinPieces(): void {
-    if (!this.modalPiecesActif || this.besoinPanier.length === 0) return;
-    this.enSoumission = true;
-
-    const itemsEnStock = this.besoinPanier.filter(it => it.piece.quantiteEnStock >= it.quantite);
-    const itemsRupture = this.besoinPanier.filter(it => it.piece.quantiteEnStock < it.quantite);
-
-    const tasks: Promise<void>[] = [];
-
-    // 1. Items en stock → Demande de Sortie
-    if (itemsEnStock.length > 0) {
-      const demande = {
-        interventionId: this.modalPiecesActif.idRaw,
-        motifOuEngin: `Lié à l'intervention ${this.modalPiecesActif.idStr} (${this.modalPiecesActif.engin})`,
-        demandeur: this.modalPiecesActif.technicien || 'Chef Atelier',
-        lignes: itemsEnStock.map(it => ({ piece: { idPiece: it.piece.idPiece }, quantiteDemandee: it.quantite }))
-      };
-      tasks.push(this.api.creerDemandeSortie(demande).toPromise());
-    }
-
-    // 2. Items en rupture → Précommandes ERP
-    for (const item of itemsRupture) {
-      const precom = {
-        designation: item.piece.designation,
-        reference: item.piece.reference || '',
-        quantite: item.quantite,
-        motif: `Intervention ${this.modalPiecesActif.idStr} — ${this.modalPiecesActif.engin}`
-      };
-      tasks.push(this.api.creerPrecommande(precom).toPromise());
-    }
-
-    Promise.all(tasks)
-      .then(() => {
-        let msg = '';
-        if (itemsEnStock.length) msg += `✅ ${itemsEnStock.length} article(s) → Bon de Sortie soumis au Chef d'Atelier.\n`;
-        if (itemsRupture.length) msg += `📦 ${itemsRupture.length} article(s) → Précommande(s) transmise(s) à l'ERP WinDev.`;
-        alert(msg);
-        this.fermerModalPieces();
-        if (itemsRupture.length > 0) {
-          this.api.mettreEnAttentePieces(this.modalPiecesActif?.idRaw).subscribe();
-        }
-      })
-      .catch(err => {
-        console.error('Erreur soumission besoins', err);
-        this.enSoumission = false;
-      });
-  }
 }

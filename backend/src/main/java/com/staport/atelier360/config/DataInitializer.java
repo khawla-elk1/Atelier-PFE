@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Configuration
+@SuppressWarnings("null")
 public class DataInitializer {
 
     @Bean
